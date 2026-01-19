@@ -19,12 +19,23 @@ func NewClient() *Client {
 	}
 }
 
-// GetTransaction fetches the transaction details and envelope XDR
-func (c *Client) GetTransaction(ctx context.Context, hash string) (string, error) {
+// TransactionResponse contains the raw XDR fields needed for simulation
+type TransactionResponse struct {
+	EnvelopeXdr   string
+	ResultXdr     string
+	ResultMetaXdr string
+}
+
+// GetTransaction fetches the transaction details and full XDR data
+func (c *Client) GetTransaction(ctx context.Context, hash string) (*TransactionResponse, error) {
 	tx, err := c.Horizon.TransactionDetail(hash)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch transaction: %w", err)
+		return nil, fmt.Errorf("failed to fetch transaction: %w", err)
 	}
 
-	return tx.EnvelopeXdr, nil
+	return &TransactionResponse{
+		EnvelopeXdr:   tx.EnvelopeXdr,
+		ResultXdr:     tx.ResultXdr,
+		ResultMetaXdr: tx.ResultMetaXdr,
+	}, nil
 }
