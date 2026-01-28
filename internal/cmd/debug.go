@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	networkFlag    string
-	rpcURLFlag     string
-	gasModelFlag   string
+	networkFlag  string
+	rpcURLFlag   string
+	gasModelFlag string
 )
 
 var debugCmd = &cobra.Command{
@@ -94,4 +94,3 @@ func init() {
 	debugCmd.Flags().StringVar(&gasModelFlag, "gas-model", "", "Custom gas model JSON file")
 	rootCmd.AddCommand(debugCmd)
 }
-
