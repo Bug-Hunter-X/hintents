@@ -11,12 +11,57 @@ import (
 
 	"github.com/dotandev/hintents/internal/logger"
 	"github.com/dotandev/hintents/internal/telemetry"
+	"github.com/dotandev/hintents/internal/trace"
 	"go.opentelemetry.io/otel/attribute"
 )
 
 // Runner handles the execution of the Rust simulator binary
 type Runner struct {
 	BinaryPath string
+}
+
+// RunWithTrace executes the simulator and generates an execution trace
+func (r *Runner) RunWithTrace(ctx context.Context, req *SimulationRequest, txHash string) (*SimulationResponse, *trace.ExecutionTrace, error) {
+	// Create execution trace
+	executionTrace := trace.NewExecutionTrace(txHash, 5) // Snapshot every 5 steps
+	
+	// Add initial state
+	executionTrace.AddState(trace.ExecutionState{
+		Operation:  "simulation_start",
+		ContractID: "simulator",
+		HostState: map[string]interface{}{
+			"envelope_size": len(req.EnvelopeXdr),
+			"has_ledger_entries": req.LedgerEntries != nil,
+		},
+	})
+	
+	// Run the simulation
+	resp, err := r.Run(ctx, req)
+	if err != nil {
+		// Add error state
+		executionTrace.AddState(trace.ExecutionState{
+			Operation: "simulation_error",
+			Error:     err.Error(),
+		})
+		return resp, executionTrace, err
+	}
+	
+	// Parse events and logs to create trace states
+	r.parseSimulationOutput(resp, executionTrace)
+	
+	// Add final state
+	executionTrace.AddState(trace.ExecutionState{
+		Operation: "simulation_complete",
+		HostState: map[string]interface{}{
+			"status": resp.Status,
+			"events_count": len(resp.Events),
+			"logs_count": len(resp.Logs),
+		},
+	})
+	
+	executionTrace.EndTime = executionTrace.States[len(executionTrace.States)-1].Timestamp
+	
+	return resp, executionTrace, nil
 }
 
 // NewRunner creates a new simulator runner.
@@ -122,4 +167,39 @@ func (r *Runner) Run(ctx context.Context, req *SimulationRequest) (*SimulationRe
 	logger.Logger.Info("Simulation completed successfully")
 
 	return &resp, nil
+}
+
+// parseSimulationOutput parses the simulation response and creates trace states
+func (r *Runner) parseSimulationOutput(resp *SimulationResponse, executionTrace *trace.ExecutionTrace) {
+	// Parse events to create execution states
+	for i, event := range resp.Events {
+		state := trace.ExecutionState{
+			Operation: "diagnostic_event",
+			HostState: map[string]interface{}{
+				"event_index": i,
+				"event_data": event,
+			},
+		}
+		
+		// Try to extract contract and function info from event
+		// This is a simplified parser - in reality, you'd parse XDR events
+		if len(event) > 0 {
+			state.ContractID = "contract_from_event" // Would extract from XDR
+			state.Function = "function_from_event"   // Would extract from XDR
+		}
+		
+		executionTrace.AddState(state)
+	}
+	
+	// Parse logs to create additional states
+	for i, logEntry := range resp.Logs {
+		state := trace.ExecutionState{
+			Operation: "host_log",
+			HostState: map[string]interface{}{
+				"log_index": i,
+				"log_entry": logEntry,
+			},
+		}
+		executionTrace.AddState(state)
+	}
 }
