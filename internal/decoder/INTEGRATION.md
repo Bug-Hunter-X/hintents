@@ -62,7 +62,7 @@ func displayTransactionResult(resultXDR string) error {
 You can test the decoder right now:
 
 ```bash
-cd /Users/bashir/Documents/hintents
+# From the project root
 go run internal/decoder/examples.go
 ```
 
