@@ -1,5 +1,16 @@
-// Copyright 2025 Erst Users
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package simulator_test
 
@@ -18,11 +29,13 @@ func ExampleSimulationRequestBuilder() {
 		Build()
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Printf("Error: %v
+", err)
 		return
 	}
 
-	fmt.Printf("Request created with envelope XDR length: %d\n", len(req.EnvelopeXdr))
+	fmt.Printf("Request created with envelope XDR length: %d
+", len(req.EnvelopeXdr))
 	// Output: Request created with envelope XDR length: 15
 }
 
@@ -37,11 +50,13 @@ func ExampleSimulationRequestBuilder_withLedgerEntries() {
 		Build()
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Printf("Error: %v
+", err)
 		return
 	}
 
-	fmt.Printf("Request created with %d ledger entries\n", len(req.LedgerEntries))
+	fmt.Printf("Request created with %d ledger entries
+", len(req.LedgerEntries))
 	// Output: Request created with 2 ledger entries
 }
 
@@ -60,11 +75,13 @@ func ExampleSimulationRequestBuilder_bulkLedgerEntries() {
 		Build()
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Printf("Error: %v
+", err)
 		return
 	}
 
-	fmt.Printf("Request created with %d ledger entries\n", len(req.LedgerEntries))
+	fmt.Printf("Request created with %d ledger entries
+", len(req.LedgerEntries))
 	// Output: Request created with 3 ledger entries
 }
 
@@ -91,7 +108,8 @@ func ExampleSimulationRequestBuilder_reuse() {
 		WithResultMetaXDR("result1").
 		Build()
 
-	fmt.Printf("First request envelope: %s\n", req1.EnvelopeXdr)
+	fmt.Printf("First request envelope: %s
+", req1.EnvelopeXdr)
 
 	// Reset and build second request
 	req2, _ := builder.
@@ -100,7 +118,8 @@ func ExampleSimulationRequestBuilder_reuse() {
 		WithResultMetaXDR("result2").
 		Build()
 
-	fmt.Printf("Second request envelope: %s\n", req2.EnvelopeXdr)
+	fmt.Printf("Second request envelope: %s
+", req2.EnvelopeXdr)
 	// Output:
 	// First request envelope: envelope1
 	// Second request envelope: envelope2

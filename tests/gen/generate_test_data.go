@@ -1,5 +1,16 @@
-// Copyright 2025 Erst Users
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package main
 
@@ -250,14 +261,16 @@ func writeTraceToFile(trace *TransactionTrace, filename string) error {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
 
-	fmt.Printf("Generated %s (%.2f KB)\n", filename, float64(len(data))/1024)
+	fmt.Printf("Generated %s (%.2f KB)
+", filename, float64(len(data))/1024)
 	return nil
 }
 
 func main() {
 	// Create testdata directory if it doesn't exist
 	if err := os.MkdirAll("testdata", 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create testdata directory: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to create testdata directory: %v
+", err)
 		os.Exit(1)
 	}
 
@@ -271,10 +284,12 @@ func main() {
 	for filename, trace := range traces {
 		fullPath := filepath.Join("testdata", filename)
 		if err := writeTraceToFile(trace, fullPath); err != nil {
-			fmt.Fprintf(os.Stderr, "Error generating %s: %v\n", filename, err)
+			fmt.Fprintf(os.Stderr, "Error generating %s: %v
+", filename, err)
 			os.Exit(1)
 		}
 	}
 
-	fmt.Println("\nAll test traces generated successfully!")
+	fmt.Println("
+All test traces generated successfully!")
 }

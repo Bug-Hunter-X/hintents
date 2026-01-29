@@ -1,3 +1,17 @@
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cmd
 
 import (
@@ -79,14 +93,18 @@ Example:
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		go func() {
 			<-sigChan
-			fmt.Println("\nReceived interrupt signal, shutting down...")
+			fmt.Println("
+Received interrupt signal, shutting down...")
 			cancel()
 		}()
 
-		fmt.Printf("Starting ERST daemon on port %s\n", daemonPort)
-		fmt.Printf("Network: %s\n", daemonNetwork)
+		fmt.Printf("Starting ERST daemon on port %s
+", daemonPort)
+		fmt.Printf("Network: %s
+", daemonNetwork)
 		if daemonRPCURL != "" {
-			fmt.Printf("RPC URL: %s\n", daemonRPCURL)
+			fmt.Printf("RPC URL: %s
+", daemonRPCURL)
 		}
 		if daemonAuthToken != "" {
 			fmt.Println("Authentication: enabled")

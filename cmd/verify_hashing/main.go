@@ -1,5 +1,16 @@
-// Copyright 2025 Erst Users
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package main
 
@@ -87,7 +98,8 @@ func main() {
 		for i := 0; i < 1000; i++ {
 			hash, err := rpc.HashLedgerKey(key)
 			if err != nil {
-				fmt.Printf(" %s: ERROR - %v\n", tt.name, err)
+				fmt.Printf(" %s: ERROR - %v
+", tt.name, err)
 				allPassed = false
 				continue
 			}
@@ -96,15 +108,19 @@ func main() {
 
 		// Should have exactly 1 unique hash
 		if len(hashes) != 1 {
-			fmt.Printf("%s: FAIL - Expected 1 unique hash, got %d\n", tt.name, len(hashes))
+			fmt.Printf("%s: FAIL - Expected 1 unique hash, got %d
+", tt.name, len(hashes))
 			for hash, count := range hashes {
-				fmt.Printf("     Hash: %s, Count: %d\n", hash, count)
+				fmt.Printf("     Hash: %s, Count: %d
+", hash, count)
 			}
 			allPassed = false
 		} else {
 			for hash := range hashes {
-				fmt.Printf(" %s: SUCCESS\n", tt.name)
-				fmt.Printf("   Hash: %s\n", hash)
+				fmt.Printf(" %s: SUCCESS
+", tt.name)
+				fmt.Printf("   Hash: %s
+", hash)
 			}
 		}
 	}

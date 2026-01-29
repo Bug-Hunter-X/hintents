@@ -1,5 +1,16 @@
-// Copyright 2025 Erst Users
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package cmd
 
@@ -65,21 +76,29 @@ Results are ordered by timestamp (most recent first) and limited by --limit flag
 			return nil
 		}
 
-		fmt.Printf("Found %d matching sessions:\n", len(sessions))
+		fmt.Printf("Found %d matching sessions:
+", len(sessions))
 		for _, s := range sessions {
 			fmt.Println("--------------------------------------------------")
-			fmt.Printf("ID: %d\n", s.ID)
-			fmt.Printf("Time: %s\n", s.Timestamp.Format("2006-01-02 15:04:05"))
-			fmt.Printf("Tx Hash: %s\n", s.TxHash)
-			fmt.Printf("Network: %s\n", s.Network)
-			fmt.Printf("Status: %s\n", s.Status)
+			fmt.Printf("ID: %d
+", s.ID)
+			fmt.Printf("Time: %s
+", s.Timestamp.Format("2006-01-02 15:04:05"))
+			fmt.Printf("Tx Hash: %s
+", s.TxHash)
+			fmt.Printf("Network: %s
+", s.Network)
+			fmt.Printf("Status: %s
+", s.Status)
 			if s.ErrorMsg != "" {
-				fmt.Printf("Error: %s\n", s.ErrorMsg)
+				fmt.Printf("Error: %s
+", s.ErrorMsg)
 			}
 			if len(s.Events) > 0 {
 				fmt.Println("Events:")
 				for _, e := range s.Events {
-					fmt.Printf("  - %s\n", e)
+					fmt.Printf("  - %s
+", e)
 				}
 			}
 		}

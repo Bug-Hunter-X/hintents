@@ -1,5 +1,16 @@
-// Copyright 2025 Erst Users
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package updater
 
@@ -179,7 +190,10 @@ func (c *Checker) compareVersions(current, latest string) (bool, error) {
 // displayNotification prints the update message to stderr
 func (c *Checker) displayNotification(latestVersion string) {
 	message := fmt.Sprintf(
-		"\n💡 A new version (%s) is available! Run 'go install github.com/dotandev/hintents/cmd/erst@latest' to update.\n\n",
+		"
+💡 A new version (%s) is available! Run 'go install github.com/dotandev/hintents/cmd/erst@latest' to update.
+
+",
 		latestVersion,
 	)
 	fmt.Fprint(os.Stderr, message)
@@ -249,7 +263,8 @@ func checkConfigFile(configPath string) bool {
 
 	// Simple YAML parsing - look for "check_for_updates: false"
 	// This is a basic implementation that avoids adding a YAML dependency
-	lines := strings.Split(string(data), "\n")
+	lines := strings.Split(string(data), "
+")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		// Check for "check_for_updates: false" or "check_for_updates:false"

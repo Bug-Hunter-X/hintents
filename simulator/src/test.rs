@@ -1,4 +1,29 @@
-// Copyright 2025 Erst Users
+// Copyright (c) 2026 dotandev
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//
+// You may obtain a copy of the License at
+//
+//
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+//
+// You may obtain a copy of the License at
+//
+//
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
 // SPDX-License-Identifier: Apache-2.0
 
 #[cfg(test)]
@@ -403,7 +428,8 @@ mod contract_execution_tests {
             .iter()
             .any(|t| t.message.contains("50") && t.message.contains("%")));
 
-        println!("\nInefficient Contract Report:");
+        println!("
+Inefficient Contract Report:");
         println!("Efficiency: {:.1}%", report.overall_efficiency);
         println!("Comparison: {}", report.comparison_to_baseline);
         for tip in &report.tips {
@@ -432,7 +458,8 @@ mod contract_execution_tests {
             .iter()
             .any(|t| t.message.contains("Memory usage") && t.message.contains("%")));
 
-        println!("\nHigh Memory Usage Report:");
+        println!("
+High Memory Usage Report:");
         for tip in &report.tips {
             println!("  - [{}] {}: {}", tip.severity, tip.category, tip.message);
         }
@@ -452,7 +479,8 @@ mod contract_execution_tests {
         assert!(tip.message.contains("150 times"));
         assert!(tip.estimated_savings.contains("30-50%"));
 
-        println!("\nLoop Optimization Tip:");
+        println!("
+Loop Optimization Tip:");
         println!("  {}", tip.message);
         println!("  Estimated Savings: {}", tip.estimated_savings);
     }
@@ -471,7 +499,8 @@ mod contract_execution_tests {
         assert!(tip.message.contains("60 storage reads"));
         assert!(tip.message.contains("Cache"));
 
-        println!("\nStorage Read Optimization Tip:");
+        println!("
+Storage Read Optimization Tip:");
         println!("  {}", tip.message);
     }
 
@@ -489,7 +518,8 @@ mod contract_execution_tests {
         assert!(tip.message.contains("25 storage writes"));
         assert!(tip.message.contains("Batch"));
 
-        println!("\nStorage Write Optimization Tip:");
+        println!("
+Storage Write Optimization Tip:");
         println!("  {}", tip.message);
     }
 
@@ -518,7 +548,8 @@ mod contract_execution_tests {
         let mem_pct = report.budget_breakdown.get("memory_usage_percent").unwrap();
         assert!(*mem_pct > 30.0 && *mem_pct < 40.0);
 
-        println!("\nBudget Breakdown:");
+        println!("
+Budget Breakdown:");
         for (key, value) in &report.budget_breakdown {
             println!("  {}: {:.2}", key, value);
         }
@@ -538,7 +569,8 @@ mod contract_execution_tests {
         let tip3 = advisor.analyze_operation_pattern("storage_write", 10, 15_000);
         assert!(tip3.is_none());
 
-        println!("\nNo optimization tips needed for efficient operations");
+        println!("
+No optimization tips needed for efficient operations");
     }
 
     #[test]
@@ -564,13 +596,16 @@ mod contract_execution_tests {
         // Should recommend poor status
         assert!(report.comparison_to_baseline.contains("Poor"));
 
-        println!("\nComprehensive Unoptimized Contract Report:");
+        println!("
+Comprehensive Unoptimized Contract Report:");
         println!("Efficiency Score: {:.1}%", report.overall_efficiency);
         println!("Status: {}", report.comparison_to_baseline);
-        println!("\nOptimization Tips:");
+        println!("
+Optimization Tips:");
         for (i, tip) in report.tips.iter().enumerate() {
             println!(
-                "\n{}. [{}] {}",
+                "
+{}. [{}] {}",
                 i + 1,
                 tip.severity.to_uppercase(),
                 tip.category
