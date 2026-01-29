@@ -7,6 +7,8 @@ export interface RPCConfig {
     retryDelay: number;
     circuitBreakerThreshold: number;
     circuitBreakerTimeout: number;
+    maxRedirects: number;
+    headers?: Record<string, string>;
 }
 
 export class RPCConfigParser {
@@ -70,6 +72,7 @@ export class RPCConfigParser {
             retryDelay: 1000, // 1 second
             circuitBreakerThreshold: 5,
             circuitBreakerTimeout: 60000, // 1 minute
+            maxRedirects: 5,
         };
     }
 }
