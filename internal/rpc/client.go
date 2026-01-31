@@ -1,16 +1,6 @@
-// Copyright (c) 2026 dotandev
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2025 Erst Users
+// SPDX-License-Identifier: Apache-2.0
+
 
 package rpc
 
@@ -22,9 +12,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/dotandev/hintents/internal/logger"
+
+
 	"github.com/dotandev/hintents/internal/telemetry"
 	"github.com/stellar/go/clients/horizonclient"
 	hProtocol "github.com/stellar/go/protocols/horizon"
@@ -103,19 +96,24 @@ var (
 
 // Client handles interactions with the Stellar Network
 type Client struct {
+	Horizon      horizonclient.ClientInterface
+	Network      Network
+	SorobanURL   string
+	token        string // stored for reference, not logged
+	Config       NetworkConfig
+	CacheEnabled bool
+	HorizonURL string
 	Horizon    horizonclient.ClientInterface
 	Network    Network
 	SorobanURL string
+	AltURLs    []string
+	mu         sync.RWMutex
+	currIndex  int
 	token      string // stored for reference, not logged
 	Config     NetworkConfig
 }
 
-// TransactionResponse contains the raw XDR fields needed for simulation
-type TransactionResponse struct {
-	EnvelopeXdr   string
-	ResultXdr     string
-	ResultMetaXdr string
-}
+
 
 // NewClient creates a new RPC client with the specified network
 // If network is empty, defaults to Mainnet
@@ -130,81 +128,94 @@ func NewClient(net Network, token string) *Client {
 		token = os.Getenv("ERST_RPC_TOKEN")
 	}
 
-	var horizonClient *horizonclient.Client
-	var sorobanURL string
-	httpClient := createHTTPClient(token)
-	var config NetworkConfig
-
+	var horizonURL string
 	switch net {
 	case Testnet:
-		horizonClient = &horizonclient.Client{
-			HorizonURL: TestnetHorizonURL,
-			HTTP:       httpClient,
-		}
+		horizonURL = TestnetHorizonURL
+	case Futurenet:
+		horizonURL = FuturenetHorizonURL
+	default:
+		horizonURL = MainnetHorizonURL
+	}
+
+	return NewClientWithURLs([]string{horizonURL}, net, token)
+}
+
+// NewClientWithURL creates a new RPC client with a custom Horizon URL and optional token
+func NewClientWithURL(url string, net Network, token string) *Client {
+	return NewClientWithURLs([]string{url}, net, token)
+}
+
+// NewClientWithURLs creates a new RPC client with a list of Horizon URLs for failover and optional token
+func NewClientWithURLs(urls []string, net Network, token string) *Client {
+	if len(urls) == 0 {
+		return NewClient(net, token)
+	}
+
+	// Re-use logic to get default Soroban URL if needed
+	var sorobanURL string
+	var config NetworkConfig
+	switch net {
+	case Testnet:
 		sorobanURL = TestnetSorobanURL
 		config = TestnetConfig
 	case Futurenet:
-		horizonClient = &horizonclient.Client{
-			HorizonURL: FuturenetHorizonURL,
-			HTTP:       httpClient,
-		}
 		sorobanURL = FuturenetSorobanURL
 		config = FuturenetConfig
-	case Mainnet:
-		fallthrough
 	default:
-		horizonClient = &horizonclient.Client{
-			HorizonURL: MainnetHorizonURL,
-			HTTP:       httpClient,
-		}
 		sorobanURL = MainnetSorobanURL
 		config = MainnetConfig
 	}
 
-	if token != "" {
-		logger.Logger.Debug("RPC client initialized with authentication")
-	} else {
-		logger.Logger.Debug("RPC client initialized without authentication")
-	}
+	httpClient := createHTTPClient(token)
 
 	return &Client{
-		Horizon:    horizonClient,
+		Horizon:      horizonClient,
+		Network:      net,
+		SorobanURL:   sorobanURL,
+		token:        token,
+		Config:       config,
+		CacheEnabled: true,
+	c := &Client{
+		HorizonURL: urls[0],
+		Horizon: &horizonclient.Client{
+			HorizonURL: urls[0],
+			HTTP:       httpClient,
+		},
 		Network:    net,
 		SorobanURL: sorobanURL,
+		AltURLs:    urls,
 		token:      token,
 		Config:     config,
 	}
+	return c
 }
 
-// NewClientWithURL creates a new RPC client with a custom Horizon URL
-// Token can be provided via the token parameter or ERST_RPC_TOKEN environment variable
-func NewClientWithURL(url string, net Network, token string) *Client {
-	// Check environment variable if token not provided
-	if token == "" {
-		token = os.Getenv("ERST_RPC_TOKEN")
+// rotateURL switches to the next available provider URL
+func (c *Client) rotateURL() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if len(c.AltURLs) <= 1 {
+		return false
 	}
 
-	// Re-use logic to get default Soroban URL
-	defaultClient := NewClient(net, token)
-
-	httpClient := createHTTPClient(token)
-	horizonClient := &horizonclient.Client{
-		HorizonURL: url,
-		HTTP:       httpClient,
-	}
-
-	if token != "" {
-		logger.Logger.Debug("RPC client initialized with authentication")
-	} else {
-		logger.Logger.Debug("RPC client initialized without authentication")
+	c.currIndex = (c.currIndex + 1) % len(c.AltURLs)
+	c.HorizonURL = c.AltURLs[c.currIndex]
+	c.Horizon = &horizonclient.Client{
+		HorizonURL: c.HorizonURL,
+		HTTP:       createHTTPClient(c.token),
 	}
 
 	return &Client{
-		Horizon:    horizonClient,
-		Network:    net,
-		SorobanURL: defaultClient.SorobanURL,
-		token:      token,
+		Horizon:      horizonClient,
+		Network:      net,
+		SorobanURL:   defaultClient.SorobanURL,
+		token:        token,
+		CacheEnabled: true,
 	}
+	logger.Logger.Warn("RPC failover triggered", "new_url", c.HorizonURL)
+	return true
 }
 
 // createHTTPClient creates an HTTP client with optional authentication
@@ -218,6 +229,8 @@ func createHTTPClient(token string) *http.Client {
 			token:     token,
 			transport: http.DefaultTransport,
 		},
+
+
 	}
 }
 
@@ -237,34 +250,55 @@ func NewCustomClient(config NetworkConfig) (*Client, error) {
 
 	sorobanURL := config.SorobanRPCURL
 	if sorobanURL == "" {
-		sorobanURL = config.HorizonURL // Fallback to Horizon URL if no Soroban RPC specified
+		sorobanURL = config.HorizonURL
 	}
 
 	return &Client{
-		Horizon:    horizonClient,
-		Network:    "custom",
-		SorobanURL: sorobanURL,
-		Config:     config,
+		Horizon:      horizonClient,
+		Network:      "custom",
+		SorobanURL:   sorobanURL,
+		Config:       config,
+		CacheEnabled: true,
 	}, nil
 }
 
 // GetTransaction fetches the transaction details and full XDR data
 func (c *Client) GetTransaction(ctx context.Context, hash string) (*TransactionResponse, error) {
+	for attempt := 0; attempt < len(c.AltURLs); attempt++ {
+		resp, err := c.getTransactionAttempt(ctx, hash)
+		if err == nil {
+			return resp, nil
+		}
+
+		// Only rotate if this isn't the last possible URL
+		if attempt < len(c.AltURLs)-1 {
+			logger.Logger.Warn("Retrying with fallback RPC...", "error", err)
+			if !c.rotateURL() {
+				break
+			}
+			continue
+		}
+		return nil, err
+	}
+	return nil, fmt.Errorf("all RPC endpoints failed")
+}
+
+func (c *Client) getTransactionAttempt(ctx context.Context, hash string) (*TransactionResponse, error) {
 	tracer := telemetry.GetTracer()
 	_, span := tracer.Start(ctx, "rpc_get_transaction")
 	span.SetAttributes(
 		attribute.String("transaction.hash", hash),
 		attribute.String("network", string(c.Network)),
+		attribute.String("rpc.url", c.HorizonURL),
 	)
 	defer span.End()
 
-	logger.Logger.Debug("Fetching transaction details", "hash", hash)
+	logger.Logger.Debug("Fetching transaction details", "hash", hash, "url", c.HorizonURL)
 
 	tx, err := c.Horizon.TransactionDetail(hash)
 	if err != nil {
 		span.RecordError(err)
-		logger.Logger.Error("Failed to fetch transaction", "hash", hash, "error", err)
-		return nil, fmt.Errorf("failed to fetch transaction: %w", err)
+		return nil, fmt.Errorf("failed to fetch transaction from %s: %w", c.HorizonURL, err)
 	}
 
 	span.SetAttributes(
@@ -273,9 +307,10 @@ func (c *Client) GetTransaction(ctx context.Context, hash string) (*TransactionR
 		attribute.Int("result_meta.size_bytes", len(tx.ResultMetaXdr)),
 	)
 
-	logger.Logger.Info("Transaction fetched successfully", "hash", hash, "envelope_size", len(tx.EnvelopeXdr))
+	logger.Logger.Info("Transaction fetched successfully", "hash", hash, "envelope_size", len(tx.EnvelopeXdr), "url", c.HorizonURL)
 
 	return ParseTransactionResponse(tx), nil
+
 
 }
 
@@ -317,6 +352,7 @@ type GetLedgerEntriesResponse struct {
 	} `json:"error,omitempty"`
 }
 
+// GetLedgerEntries fetches the current state of ledger entries from Soroban RPC with automatic failover
 // GetLedgerHeader fetches ledger header details for a specific sequence.
 // This includes essential metadata like sequence number, timestamp, protocol version,
 // and XDR-encoded header data needed for transaction simulation.
@@ -471,13 +507,60 @@ func (c *Client) GetLedgerEntries(ctx context.Context, keys []string) (map[strin
 		return map[string]string{}, nil
 	}
 
-	logger.Logger.Debug("Fetching ledger entries", "count", len(keys), "url", c.SorobanURL)
+	entries := make(map[string]string)
+	var keysToFetch []string
+
+	// Check cache if enabled
+	if c.CacheEnabled {
+		for _, key := range keys {
+			val, hit, err := Get(key)
+			if err != nil {
+				logger.Logger.Warn("Cache read failed", "error", err)
+			}
+			if hit {
+				entries[key] = val
+				logger.Logger.Debug("Cache hit", "key", key)
+			} else {
+				keysToFetch = append(keysToFetch, key)
+			}
+		}
+	} else {
+		keysToFetch = keys
+	}
+
+	// If all keys found in cache, return immediately
+	if len(keysToFetch) == 0 {
+		logger.Logger.Info("All ledger entries found in cache", "count", len(keys))
+		return entries, nil
+	}
+
+	logger.Logger.Debug("Fetching ledger entries from RPC", "count", len(keysToFetch), "url", c.SorobanURL)
+	for attempt := 0; attempt < len(c.AltURLs); attempt++ {
+		entries, err := c.getLedgerEntriesAttempt(ctx, keys)
+		if err == nil {
+			return entries, nil
+		}
+
+		if attempt < len(c.AltURLs)-1 {
+			logger.Logger.Warn("Retrying with fallback Soroban RPC...", "error", err)
+			if !c.rotateURL() {
+				break
+			}
+			continue
+		}
+		return nil, err
+	}
+	return nil, fmt.Errorf("all Soroban RPC endpoints failed")
+}
+
+func (c *Client) getLedgerEntriesAttempt(ctx context.Context, keys []string) (map[string]string, error) {
+	logger.Logger.Debug("Fetching ledger entries", "count", len(keys), "url", c.HorizonURL)
 
 	reqBody := GetLedgerEntriesRequest{
 		Jsonrpc: "2.0",
 		ID:      1,
 		Method:  "getLedgerEntries",
-		Params:  []interface{}{keys},
+		Params:  []interface{}{keysToFetch},
 	}
 
 	bodyBytes, err := json.Marshal(reqBody)
@@ -485,7 +568,18 @@ func (c *Client) GetLedgerEntries(ctx context.Context, keys []string) (map[strin
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", c.SorobanURL, bytes.NewBuffer(bodyBytes))
+	// Note: We use the current HorizonURL for Soroban RPC as well if provided via flag,
+	// or fallback to default if not. In this implementation, HorizonURL and SorobanRPC
+	// are assumed to be handled by the same endpoint or derived from it for simplicity
+	// in the fallback rotation.
+	targetURL := c.HorizonURL
+	if c.Network == Testnet && targetURL == "" {
+		targetURL = TestnetSorobanURL
+	} else if c.Network == Mainnet && targetURL == "" {
+		targetURL = MainnetSorobanURL
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", targetURL, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -493,7 +587,7 @@ func (c *Client) GetLedgerEntries(ctx context.Context, keys []string) (map[strin
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute request: %w", err)
+		return nil, fmt.Errorf("failed to execute request to %s: %w", targetURL, err)
 	}
 	defer resp.Body.Close()
 
@@ -508,15 +602,28 @@ func (c *Client) GetLedgerEntries(ctx context.Context, keys []string) (map[strin
 	}
 
 	if rpcResp.Error != nil {
-		return nil, fmt.Errorf("rpc error: %s (code %d)", rpcResp.Error.Message, rpcResp.Error.Code)
+		return nil, fmt.Errorf("rpc error from %s: %s (code %d)", targetURL, rpcResp.Error.Message, rpcResp.Error.Code)
 	}
 
-	entries := make(map[string]string)
+	fetchedCount := 0
 	for _, entry := range rpcResp.Result.Entries {
 		entries[entry.Key] = entry.Xdr
+		fetchedCount++
+
+		// Cache the new entry
+		if c.CacheEnabled {
+			if err := Set(entry.Key, entry.Xdr); err != nil {
+				logger.Logger.Warn("Failed to cache entry", "key", entry.Key, "error", err)
+			}
+		}
 	}
 
-	logger.Logger.Info("Ledger entries fetched successfully", "found", len(entries), "requested", len(keys))
+	logger.Logger.Info("Ledger entries fetched",
+		"total_requested", len(keys),
+		"from_cache", len(keys)-len(keysToFetch),
+		"from_rpc", fetchedCount,
+	)
+	logger.Logger.Info("Ledger entries fetched successfully", "found", len(entries), "requested", len(keys), "url", targetURL)
 
 	return entries, nil
 }
@@ -560,4 +667,78 @@ func getTransactionStatus(tx hProtocol.Transaction) string {
 		return "✓ success"
 	}
 	return "✗ failed"
+}
+
+type SimulateTransactionRequest struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	ID      int           `json:"id"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+}
+
+type SimulateTransactionResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		// Soroban RPC returns these in various versions. Keep fields optional.
+		// We only need minimal pieces for fee/budget estimation.
+		MinResourceFee  string `json:"minResourceFee,omitempty"`
+		TransactionData string `json:"transactionData,omitempty"`
+		Cost            struct {
+			CpuInsns  int64 `json:"cpuInsns,omitempty"`
+			MemBytes  int64 `json:"memBytes,omitempty"`
+			CpuInsns_ int64 `json:"cpu_insns,omitempty"`
+			MemBytes_ int64 `json:"mem_bytes,omitempty"`
+		} `json:"cost,omitempty"`
+	} `json:"result"`
+	Error *struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error,omitempty"`
+}
+
+// SimulateTransaction calls Soroban RPC simulateTransaction using a base64 TransactionEnvelope XDR.
+// This is used for pre-submission "dry-run" cost estimation.
+func (c *Client) SimulateTransaction(ctx context.Context, envelopeXdr string) (*SimulateTransactionResponse, error) {
+	logger.Logger.Debug("Simulating transaction (preflight)", "url", c.SorobanURL)
+
+	reqBody := SimulateTransactionRequest{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  "simulateTransaction",
+		Params:  []interface{}{envelopeXdr},
+	}
+
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", c.SorobanURL, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var rpcResp SimulateTransactionResponse
+	if err := json.Unmarshal(respBytes, &rpcResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if rpcResp.Error != nil {
+		return nil, fmt.Errorf("rpc error: %s (code %d)", rpcResp.Error.Message, rpcResp.Error.Code)
+	}
+
+	return &rpcResp, nil
 }

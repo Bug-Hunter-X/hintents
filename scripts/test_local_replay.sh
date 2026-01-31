@@ -1,5 +1,9 @@
 #!/bin/bash
 
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+
 # Test script for local WASM replay functionality
 # This script tests the erst debug --wasm feature
 

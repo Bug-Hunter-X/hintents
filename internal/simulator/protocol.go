@@ -1,16 +1,6 @@
-// Copyright (c) 2026 dotandev
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Copyright 2025 Erst Users
+// SPDX-License-Identifier: Apache-2.0
+
 
 package simulator
 
@@ -21,9 +11,9 @@ import (
 )
 
 type Protocol struct {
-	Version   uint32
-	Name      string
-	Features  map[string]interface{}
+	Version  uint32
+	Name     string
+	Features map[string]interface{}
 }
 
 var protocols = map[uint32]*Protocol{
@@ -31,10 +21,10 @@ var protocols = map[uint32]*Protocol{
 		Version: 20,
 		Name:    "Soroban Protocol 20",
 		Features: map[string]interface{}{
-			"max_contract_size":     65536,
+			"max_contract_size":      65536,
 			"max_contract_data_size": 1024000,
-			"max_instruction_limit": 100000000,
-			"supported_opcodes":     []string{"invoke_contract", "create_contract"},
+			"max_instruction_limit":  100000000,
+			"supported_opcodes":      []string{"invoke_contract", "create_contract"},
 		},
 	},
 	21: {
@@ -42,10 +32,10 @@ var protocols = map[uint32]*Protocol{
 		Name:    "Soroban Protocol 21",
 		Features: map[string]interface{}{
 			"max_contract_size":      65536,
-			"max_contract_data_size":  2048000,
-			"max_instruction_limit":   150000000,
-			"supported_opcodes":       []string{"invoke_contract", "create_contract", "extend_contract"},
-			"enhanced_metering":       true,
+			"max_contract_data_size": 2048000,
+			"max_instruction_limit":  150000000,
+			"supported_opcodes":      []string{"invoke_contract", "create_contract", "extend_contract"},
+			"enhanced_metering":      true,
 		},
 	},
 	22: {
@@ -53,11 +43,11 @@ var protocols = map[uint32]*Protocol{
 		Name:    "Soroban Protocol 22",
 		Features: map[string]interface{}{
 			"max_contract_size":      131072,
-			"max_contract_data_size":  4096000,
-			"max_instruction_limit":   200000000,
-			"supported_opcodes":       []string{"invoke_contract", "create_contract", "extend_contract", "upgrade_contract"},
-			"enhanced_metering":       true,
-			"optimized_storage":       true,
+			"max_contract_data_size": 4096000,
+			"max_instruction_limit":  200000000,
+			"supported_opcodes":      []string{"invoke_contract", "create_contract", "extend_contract", "upgrade_contract"},
+			"enhanced_metering":      true,
+			"optimized_storage":      true,
 		},
 	},
 }

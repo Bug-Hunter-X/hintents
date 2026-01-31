@@ -1,3 +1,6 @@
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import { generateKeyPairSync, KeyObject } from 'crypto';
 
 // Use Ed25519 as requested in the Must-haves

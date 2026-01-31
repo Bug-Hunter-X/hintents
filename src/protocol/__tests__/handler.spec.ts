@@ -1,3 +1,6 @@
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import { ProtocolHandler } from '../handler';
 
 describe('ProtocolHandler', () => {
@@ -16,8 +19,8 @@ describe('ProtocolHandler', () => {
 
     describe('rate limiting', () => {
         it('should allow requests within the defined rate limit', async () => {
-            const uri1 = 'erst://debug/a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeff?network=testnet';
-            const uri2 = 'erst://debug/b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeffaa?network=testnet';
+            const uri1 = 'erst://debug/a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeff?network=testnet&source=dashboard';
+            const uri2 = 'erst://debug/b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeffaa?network=testnet&source=dashboard';
 
             // Should not throw any errors
             await expect(handler.handle(uri1)).resolves.not.toThrow();
@@ -25,7 +28,7 @@ describe('ProtocolHandler', () => {
         });
 
         it('should reject requests that exceed the rate limit', async () => {
-            const uri = 'erst://debug/a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeff?network=testnet';
+            const uri = 'erst://debug/a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdeff?network=testnet&source=dashboard';
 
             // First 3 requests should succeed
             await handler.handle(uri);

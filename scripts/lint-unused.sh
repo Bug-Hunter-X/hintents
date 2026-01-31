@@ -1,5 +1,9 @@
 #!/bin/bash
 
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+
 # Script to run unused code detection and cleanup
 # This script should be run after resolving the Go toolchain version mismatch
 

@@ -1,9 +1,12 @@
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import { verify, createHash } from 'crypto';
 import stringify from 'fast-json-stable-stringify';
 
 export const verifyAuditLog = (
-  auditLog: any, 
-  publicKeyPEM: string
+  auditLog: any,
+  publicKeyPEM?: string
 ): boolean => {
   const { trace, hash, signature } = auditLog;
 
@@ -20,10 +23,16 @@ export const verifyAuditLog = (
   }
 
   // Check 2: Was the hash signed by the owner of the Public Key?
+  const keyToUse = publicKeyPEM ?? auditLog.publicKey;
+  if (!keyToUse) {
+    console.error('Verification Failed: No public key provided or embedded in audit log.');
+    return false;
+  }
+
   const isSignatureValid = verify(
     null,
     Buffer.from(hash),
-    publicKeyPEM,
+    keyToUse,
     Buffer.from(signature, 'hex')
   );
 

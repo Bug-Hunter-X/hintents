@@ -1,3 +1,6 @@
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 import { URIParser, ParsedURI } from './uri-parser';
 import { DebugSession } from '../debug/session';
 import * as fs from 'fs/promises';

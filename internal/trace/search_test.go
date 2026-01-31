@@ -1,3 +1,6 @@
+// Copyright 2025 Erst Users
+// SPDX-License-Identifier: Apache-2.0
+
 package trace
 
 import (
@@ -297,15 +300,15 @@ func TestSearchEngine_PartialMatch(t *testing.T) {
 
 func TestSearchEngine_CurrentMatch_WithMatches(t *testing.T) {
 	engine := NewSearchEngine()
-	
+
 	nodes := []*TraceNode{
 		{ID: "1", Function: "test1"},
 		{ID: "2", Function: "test2"},
 	}
-	
+
 	engine.SetQuery("test")
 	engine.Search(nodes)
-	
+
 	// Should have current match after search
 	current := engine.CurrentMatch()
 	assert.NotNil(t, current)
@@ -314,21 +317,21 @@ func TestSearchEngine_CurrentMatch_WithMatches(t *testing.T) {
 
 func TestSearchEngine_ToggleCaseSensitive_WithQuery(t *testing.T) {
 	engine := NewSearchEngine()
-	
+
 	nodes := []*TraceNode{
 		{ID: "1", Error: "Error occurred"},
 		{ID: "2", Error: "error message"},
 	}
-	
+
 	engine.SetQuery("error")
 	engine.Search(nodes)
-	
+
 	// Should find 2 matches (case-insensitive)
 	assert.Equal(t, 2, engine.MatchCount())
-	
+
 	// Toggle to case-sensitive
 	engine.ToggleCaseSensitive(nodes)
-	
+
 	// Should find 1 match (only lowercase)
 	assert.Equal(t, 1, engine.MatchCount())
 }
@@ -336,7 +339,7 @@ func TestSearchEngine_ToggleCaseSensitive_WithQuery(t *testing.T) {
 func TestSearchEngine_HighlightMatches_AllFields(t *testing.T) {
 	engine := NewSearchEngine()
 	engine.SetQuery("test")
-	
+
 	node := &TraceNode{
 		ID:         "1",
 		ContractID: "test_contract",
@@ -345,7 +348,7 @@ func TestSearchEngine_HighlightMatches_AllFields(t *testing.T) {
 		EventData:  "test_event",
 		Type:       "test_type",
 	}
-	
+
 	// Test each field
 	fields := []string{"contractID", "function", "error", "event", "type"}
 	for _, field := range fields {
@@ -358,12 +361,12 @@ func TestSearchEngine_HighlightMatches_AllFields(t *testing.T) {
 func TestSearchEngine_HighlightMatches_InvalidField(t *testing.T) {
 	engine := NewSearchEngine()
 	engine.SetQuery("test")
-	
+
 	node := &TraceNode{
 		ID:    "1",
 		Error: "test error",
 	}
-	
+
 	ranges := engine.HighlightMatches(node, "invalid_field")
 	assert.Nil(t, ranges)
 }
@@ -371,12 +374,12 @@ func TestSearchEngine_HighlightMatches_InvalidField(t *testing.T) {
 func TestSearchEngine_HighlightMatches_EmptyField(t *testing.T) {
 	engine := NewSearchEngine()
 	engine.SetQuery("test")
-	
+
 	node := &TraceNode{
 		ID:    "1",
 		Error: "", // Empty field
 	}
-	
+
 	ranges := engine.HighlightMatches(node, "error")
 	assert.Nil(t, ranges)
 }

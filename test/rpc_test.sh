@@ -1,5 +1,9 @@
 #!/bin/bash
 
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+
 # Test script for JSON-RPC daemon
 
 PORT=${1:-8080}

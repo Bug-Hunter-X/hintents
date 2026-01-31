@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gorilla/rpc v1.2.1
+	github.com/mattn/go-isatty v0.0.20
 	github.com/hashicorp/go-version v1.8.0
 	github.com/schollz/progressbar/v3 v3.19.0
 	github.com/spf13/cobra v1.7.0
@@ -30,7 +31,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -1,4 +1,8 @@
 #!/bin/bash
+
+// Copyright (c) 2026 dotandev
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 # Verification script for security vulnerability detection implementation
 
 set -e
