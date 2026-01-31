@@ -1,7 +1,6 @@
 // Copyright 2025 Erst Users
 // SPDX-License-Identifier: Apache-2.0
 
-
 package rpc
 
 import (
@@ -16,7 +15,6 @@ import (
 	"time"
 
 	"github.com/dotandev/hintents/internal/logger"
-
 
 	"github.com/dotandev/hintents/internal/telemetry"
 	"github.com/stellar/go/clients/horizonclient"
@@ -96,24 +94,17 @@ var (
 
 // Client handles interactions with the Stellar Network
 type Client struct {
+	HorizonURL   string
 	Horizon      horizonclient.ClientInterface
 	Network      Network
 	SorobanURL   string
+	AltURLs      []string
+	mu           sync.RWMutex
+	currIndex    int
 	token        string // stored for reference, not logged
 	Config       NetworkConfig
 	CacheEnabled bool
-	HorizonURL string
-	Horizon    horizonclient.ClientInterface
-	Network    Network
-	SorobanURL string
-	AltURLs    []string
-	mu         sync.RWMutex
-	currIndex  int
-	token      string // stored for reference, not logged
-	Config     NetworkConfig
 }
-
-
 
 // NewClient creates a new RPC client with the specified network
 // If network is empty, defaults to Mainnet
@@ -170,13 +161,6 @@ func NewClientWithURLs(urls []string, net Network, token string) *Client {
 	httpClient := createHTTPClient(token)
 
 	return &Client{
-		Horizon:      horizonClient,
-		Network:      net,
-		SorobanURL:   sorobanURL,
-		token:        token,
-		Config:       config,
-		CacheEnabled: true,
-	c := &Client{
 		HorizonURL: urls[0],
 		Horizon: &horizonclient.Client{
 			HorizonURL: urls[0],
@@ -188,7 +172,6 @@ func NewClientWithURLs(urls []string, net Network, token string) *Client {
 		token:      token,
 		Config:     config,
 	}
-	return c
 }
 
 // rotateURL switches to the next available provider URL
@@ -207,30 +190,31 @@ func (c *Client) rotateURL() bool {
 		HTTP:       createHTTPClient(c.token),
 	}
 
-	return &Client{
-		Horizon:      horizonClient,
-		Network:      net,
-		SorobanURL:   defaultClient.SorobanURL,
-		token:        token,
-		CacheEnabled: true,
-	}
 	logger.Logger.Warn("RPC failover triggered", "new_url", c.HorizonURL)
 	return true
 }
 
 // createHTTPClient creates an HTTP client with optional authentication
 func createHTTPClient(token string) *http.Client {
-	if token == "" {
-		return http.DefaultClient
+	cfg := DefaultRetryConfig()
+
+	// Build transport chain: base -> auth -> retry
+	var baseTransport http.RoundTripper = http.DefaultTransport
+
+	// Add auth transport if token is provided
+	var transport http.RoundTripper = baseTransport
+	if token != "" {
+		transport = &authTransport{
+			token:     token,
+			transport: baseTransport,
+		}
 	}
 
+	// Add retry transport
+	transport = NewRetryTransport(cfg, transport)
+
 	return &http.Client{
-		Transport: &authTransport{
-			token:     token,
-			transport: http.DefaultTransport,
-		},
-
-
+		Transport: transport,
 	}
 }
 
@@ -310,7 +294,6 @@ func (c *Client) getTransactionAttempt(ctx context.Context, hash string) (*Trans
 	logger.Logger.Info("Transaction fetched successfully", "hash", hash, "envelope_size", len(tx.EnvelopeXdr), "url", c.HorizonURL)
 
 	return ParseTransactionResponse(tx), nil
-
 
 }
 
@@ -560,7 +543,7 @@ func (c *Client) getLedgerEntriesAttempt(ctx context.Context, keys []string) (ma
 		Jsonrpc: "2.0",
 		ID:      1,
 		Method:  "getLedgerEntries",
-		Params:  []interface{}{keysToFetch},
+		Params:  []interface{}{keys},
 	}
 
 	bodyBytes, err := json.Marshal(reqBody)
@@ -605,6 +588,7 @@ func (c *Client) getLedgerEntriesAttempt(ctx context.Context, keys []string) (ma
 		return nil, fmt.Errorf("rpc error from %s: %s (code %d)", targetURL, rpcResp.Error.Message, rpcResp.Error.Code)
 	}
 
+	entries := make(map[string]string)
 	fetchedCount := 0
 	for _, entry := range rpcResp.Result.Entries {
 		entries[entry.Key] = entry.Xdr
@@ -620,7 +604,6 @@ func (c *Client) getLedgerEntriesAttempt(ctx context.Context, keys []string) (ma
 
 	logger.Logger.Info("Ledger entries fetched",
 		"total_requested", len(keys),
-		"from_cache", len(keys)-len(keysToFetch),
 		"from_rpc", fetchedCount,
 	)
 	logger.Logger.Info("Ledger entries fetched successfully", "found", len(entries), "requested", len(keys), "url", targetURL)
