@@ -22,7 +22,7 @@ func TestNewXDRFormatter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			formatter := NewXDRFormatter(tt.format)
 			if formatter == nil {
-				t.Error("expected non-nil formatter")
+				t.Fatal("expected non-nil formatter")
 			}
 			if formatter.format != tt.format {
 				t.Errorf("expected format %s, got %s", tt.format, formatter.format)

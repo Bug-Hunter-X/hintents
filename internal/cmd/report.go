@@ -138,7 +138,7 @@ func reportExec(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to write JSON report: %w", err)
 		}
 
-		fmt.Printf("✓ Report generated: %s\n", filename)
+		fmt.Printf("[OK] Report generated: %s\n", filename)
 		return nil
 	}
 
@@ -148,7 +148,7 @@ func reportExec(cmd *cobra.Command, args []string) error {
 	}
 
 	for format, path := range results {
-		fmt.Printf("✓ %s report generated: %s\n", string(format), path)
+		fmt.Printf("[OK] %s report generated: %s\n", string(format), path)
 	}
 
 	return nil

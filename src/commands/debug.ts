@@ -102,7 +102,7 @@ export function registerDebugCommand(program: Command): void {
 
                 console.log('\n📊 RPC Endpoint Status:\n');
                 status.forEach((ep, idx) => {
-                    const statusIcon = ep.healthy ? '✅' : '❌';
+                    const statusIcon = ep.healthy ? '' : '[FAIL]';
                     const circuit = ep.circuitOpen ? ' [CIRCUIT OPEN]' : '';
                     const successRate = ep.metrics.totalRequests > 0
                         ? ((ep.metrics.totalSuccess / ep.metrics.totalRequests) * 100).toFixed(1)
@@ -116,9 +116,9 @@ export function registerDebugCommand(program: Command): void {
 
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error('❌ Health check failed:', error.message);
+                    console.error('[FAIL] Health check failed:', error.message);
                 } else {
-                    console.error('❌ Health check failed: An unknown error occurred');
+                    console.error('[FAIL] Health check failed: An unknown error occurred');
                 }
                 process.exit(1);
             }

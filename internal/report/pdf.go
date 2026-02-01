@@ -35,8 +35,8 @@ func convertHTMLToPDF(htmlContent []byte, title string) ([]byte, error) {
 	tmpHTML := filepath.Join(os.TempDir(), "report-"+randomID()+".html")
 	tmpPDF := filepath.Join(os.TempDir(), "report-"+randomID()+".pdf")
 
-	defer os.Remove(tmpHTML)
-	defer os.Remove(tmpPDF)
+	defer func() { _ = os.Remove(tmpHTML) }()
+	defer func() { _ = os.Remove(tmpPDF) }()
 
 	if err := os.WriteFile(tmpHTML, htmlContent, 0644); err != nil {
 		return nil, fmt.Errorf("failed to write temp HTML: %w", err)

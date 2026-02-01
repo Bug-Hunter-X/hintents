@@ -9,17 +9,17 @@ set -e
 MISSING_HEADERS=0
 EXPECTED_HEADER="Copyright 2025 Erst Users"
 
-echo "🔍 Checking for license headers in Go and Rust files..."
+echo "Checking for license headers in Go and Rust files..."
 
 # Check Go files
 echo ""
 echo "Checking Go files (.go)..."
 while IFS= read -r file; do
     if ! head -1 "$file" | grep -q "$EXPECTED_HEADER"; then
-        echo "  ❌ Missing license header: $file"
+        echo "  [FAIL] Missing license header: $file"
         MISSING_HEADERS=$((MISSING_HEADERS + 1))
     else
-        echo "  ✅ $file"
+        echo "  [OK] $file"
     fi
 done < <(find . -type d \( -name "target" -o -name "vendor" \) -prune -o -name "*.go" -type f -print)
 
@@ -28,18 +28,18 @@ echo ""
 echo "Checking Rust files (.rs)..."
 while IFS= read -r file; do
     if ! head -1 "$file" | grep -q "$EXPECTED_HEADER"; then
-        echo "  ❌ Missing license header: $file"
+        echo "  [FAIL] Missing license header: $file"
         MISSING_HEADERS=$((MISSING_HEADERS + 1))
     else
-        echo "  ✅ $file"
+        echo "  [OK] $file"
     fi
 done < <(find . -type d \( -name "target" -o -name "vendor" \) -prune -o -name "*.rs" -type f -print)
 
 echo ""
 if [ $MISSING_HEADERS -eq 0 ]; then
-    echo "✅ All files have proper license headers"
+    echo "[OK] All files have proper license headers"
     exit 0
 else
-    echo "❌ Found $MISSING_HEADERS file(s) missing license headers"
+    echo "[FAIL] Found $MISSING_HEADERS file(s) missing license headers"
     exit 1
 fi

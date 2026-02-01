@@ -61,12 +61,12 @@ Other:
 ## Example Session
 
 ```
-🔍 ERST Interactive Trace Viewer
+[SEARCH] ERST Interactive Trace Viewer
 =================================
 Transaction: sample-tx-hash-12345
 Total Steps: 7
 
-📍 Current State
+[LOC] Current State
 ================
 Step: 0/6
 Time: 15:04:05.123
@@ -75,9 +75,9 @@ Contract: CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCN4B2
 Function: initialize
 
 > n
-➡️  Stepped forward to step 1
+->  Stepped forward to step 1
 
-📍 Current State  
+[LOC] Current State  
 ================
 Step: 1/6
 Operation: contract_call
@@ -85,13 +85,13 @@ Function: mint
 Return: true
 
 > p
-⬅️  Stepped backward to step 0
+<-  Stepped backward to step 0
 
 > j 3
-🎯 Jumped to step 3
+[TARGET] Jumped to step 3
 
 > r
-🔧 Reconstructed State at Step 3
+[TOOL] Reconstructed State at Step 3
 ==================================
 Host State:
   balance: 400000

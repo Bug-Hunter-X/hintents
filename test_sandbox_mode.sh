@@ -9,9 +9,9 @@ echo ""
 # Test 1: Verify flag exists
 echo "Test 1: Checking --override-state flag exists..."
 if go run cmd/erst/main.go help 2>&1 | grep -q "override-state"; then
-    echo "✓ Flag registered in command help"
+    echo "[OK] Flag registered in command help"
 else
-    echo "✗ Flag not found in help"
+    echo "[FAIL] Flag not found in help"
     exit 1
 fi
 
@@ -26,16 +26,16 @@ cat > /tmp/test_override.json << 'EOF'
   }
 }
 EOF
-echo "✓ Override file created"
+echo "[OK] Override file created"
 
 # Test 3: Test override file loading
 echo ""
 echo "Test 3: Testing override file parsing..."
 go test ./internal/cmd -run TestLoadOverrideState -v 2>&1 | grep -q "PASS"
 if [ $? -eq 0 ]; then
-    echo "✓ Override file parsing works"
+    echo "[OK] Override file parsing works"
 else
-    echo "✗ Override file parsing failed"
+    echo "[FAIL] Override file parsing failed"
     exit 1
 fi
 
@@ -45,9 +45,9 @@ echo "Test 4: Testing invalid JSON handling..."
 echo "invalid json" > /tmp/invalid_override.json
 go test ./internal/cmd -run TestLoadOverrideState/invalid_json -v 2>&1 | grep -q "PASS"
 if [ $? -eq 0 ]; then
-    echo "✓ Invalid JSON handled correctly"
+    echo "[OK] Invalid JSON handled correctly"
 else
-    echo "✗ Invalid JSON handling failed"
+    echo "[FAIL] Invalid JSON handling failed"
     exit 1
 fi
 
@@ -61,9 +61,9 @@ cat > /tmp/empty_override.json << 'EOF'
 EOF
 go test ./internal/cmd -run TestLoadOverrideState/empty_ledger_entries -v 2>&1 | grep -q "PASS"
 if [ $? -eq 0 ]; then
-    echo "✓ Empty entries handled correctly"
+    echo "[OK] Empty entries handled correctly"
 else
-    echo "✗ Empty entries handling failed"
+    echo "[FAIL] Empty entries handling failed"
     exit 1
 fi
 
@@ -71,9 +71,9 @@ fi
 echo ""
 echo "Test 6: Running all override-related tests..."
 if go test ./internal/cmd -run TestLoadOverrideState -v; then
-    echo "✓ All unit tests pass"
+    echo "[OK] All unit tests pass"
 else
-    echo "✗ Some tests failed"
+    echo "[FAIL] Some tests failed"
     exit 1
 fi
 
@@ -81,9 +81,9 @@ fi
 echo ""
 echo "Test 7: Verifying build succeeds..."
 if go build ./internal/cmd/...; then
-    echo "✓ Build successful"
+    echo "[OK] Build successful"
 else
-    echo "✗ Build failed"
+    echo "[FAIL] Build failed"
     exit 1
 fi
 
@@ -91,14 +91,14 @@ echo ""
 echo "=== All Tests Passed ==="
 echo ""
 echo "Issue #95 Requirements Met:"
-echo "✓ --override-state flag implemented"
-echo "✓ Override JSON file parsing works"
-echo "✓ Error handling for invalid files"
-echo "✓ LedgerEntries field properly integrated"
-echo "✓ Logging when sandbox mode is active"
+echo "[OK] --override-state flag implemented"
+echo "[OK] Override JSON file parsing works"
+echo "[OK] Error handling for invalid files"
+echo "[OK] LedgerEntries field properly integrated"
+echo "[OK] Logging when sandbox mode is active"
 echo ""
 echo "Success Criteria Verified:"
-echo "✓ Flag accepted and processed"
-echo "✓ Override values loaded from JSON"
-echo "✓ Values passed to simulator via LedgerEntries"
+echo "[OK] Flag accepted and processed"
+echo "[OK] Override values loaded from JSON"
+echo "[OK] Values passed to simulator via LedgerEntries"
 echo ""

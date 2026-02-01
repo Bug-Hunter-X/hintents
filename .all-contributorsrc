@@ -48,7 +48,7 @@
       "description": "Reviewed Pull Requests"
     },
     "test": {
-      "symbol": "⚠️",
+      "symbol": "[WARN]",
       "description": "Tests"
     },
     "infra": {

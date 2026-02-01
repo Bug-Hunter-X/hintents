@@ -45,14 +45,14 @@ erst rpc:health --rpc https://rpc1.com,https://rpc2.com
 ### Status Output Example
 
 ```
-📊 RPC Endpoint Status:
+[STATS] RPC Endpoint Status:
 
-  [1] ✅ https://rpc1.com
+  [1]  https://rpc1.com
       Success Rate: 100.0% (12/12)
       Avg Duration: 245ms
       Failures: 0
 
-  [2] ❌ https://rpc2.com [CIRCUIT OPEN]
+  [2] [FAIL] https://rpc2.com [CIRCUIT OPEN]
       Success Rate: 0.0% (0/5)
       Avg Duration: 3000ms
       Failures: 5

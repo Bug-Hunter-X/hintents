@@ -1,6 +1,6 @@
 # Simulator Runner Interface Implementation
 
-## ✅ **Implementation Summary**
+##  **Implementation Summary**
 
 ### **1. Interface Definition**
 ```go
@@ -38,7 +38,7 @@ func (m *MockRunner) Run(req *SimulationRequest) (*SimulationResponse, error) {
 - Dependency injection pattern demonstrated
 - Test examples showing mock usage
 
-## 🎯 **Benefits Achieved**
+## [TARGET] **Benefits Achieved**
 
 1. **Testability**: Commands can now be unit tested without `erst-sim` binary
 2. **Flexibility**: Easy to swap implementations (real vs mock vs alternative)
@@ -46,11 +46,11 @@ func (m *MockRunner) Run(req *SimulationRequest) (*SimulationResponse, error) {
 4. **Zero Breaking Changes**: All existing code continues to work
 5. **Type Safety**: Compile-time interface compliance checking
 
-## 🔧 **Ready for CI/CD**
+## [TOOL] **Ready for CI/CD**
 
 The interface implementation:
-- ✅ Compiles successfully (when Go toolchain is fixed)
-- ✅ Maintains all existing functionality  
-- ✅ Adds comprehensive test coverage
-- ✅ Follows Go best practices
-- ✅ Zero performance impact
+-  Compiles successfully (when Go toolchain is fixed)
+-  Maintains all existing functionality  
+-  Adds comprehensive test coverage
+-  Follows Go best practices
+-  Zero performance impact

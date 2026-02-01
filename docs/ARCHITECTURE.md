@@ -292,9 +292,9 @@ graph TD
 ### When to Use Horizon API
 
 **Strengths:**
-- ✅ Simple REST interface with standard HTTP
-- ✅ Broad ecosystem support and documentation
-- ✅ Well-established for common queries
+-  Simple REST interface with standard HTTP
+-  Broad ecosystem support and documentation
+-  Well-established for common queries
 
 **Use Cases in Erst:**
 - Fetching transaction details and envelopes
@@ -309,9 +309,9 @@ graph TD
 ### When to Use JSON-RPC (Future Enhancement)
 
 **Strengths:**
-- ✅ More granular access to ledger state
-- ✅ Better support for historical queries
-- ✅ Optimized for simulator needs
+-  More granular access to ledger state
+-  Better support for historical queries
+-  Optimized for simulator needs
 
 **Planned Use Cases:**
 - Direct ledger entry queries by key
@@ -459,7 +459,7 @@ sequenceDiagram
     
     Sim-->>CLI: {status, events, logs}
     
-    CLI->>User: Display: ✓ Success<br/>Events: [...]<br/>Logs: [...]
+    CLI->>User: Display: [OK] Success<br/>Events: [...]<br/>Logs: [...]
 ```
 
 ### Example 2: Failed Transaction with Error

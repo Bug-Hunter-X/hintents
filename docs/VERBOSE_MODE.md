@@ -46,16 +46,16 @@ erst debug <transaction_hash> --verbose
 ### Standard Output
 
 ```
-🔍 Debugging transaction: a1b2c3d4...
-✅ Transaction fetched successfully
-📊 Operations: 3
-✅ Debug complete
+[SEARCH] Debugging transaction: a1b2c3d4...
+ Transaction fetched successfully
+[STATS] Operations: 3
+ Debug complete
 ```
 
 ### Verbose Output
 
 ```
-🔍 Debugging transaction: a1b2c3d4e5f6...
+[SEARCH] Debugging transaction: a1b2c3d4e5f6...
 
 [00:00.123] [INFO] Configuration
 [00:00.124] [INFO]   RPC URL: https://horizon-testnet.stellar.org
@@ -74,15 +74,15 @@ erst debug <transaction_hash> --verbose
 [00:00.349] [DATA]   Ledger: 12345678
 [00:00.350] [DATA]   Source: GABC...XYZ
 
-✅ Transaction fetched successfully
-📊 Operations: 3
+ Transaction fetched successfully
+[STATS] Operations: 3
 
 [00:00.506] [PERF] Performance metrics
 [00:00.507] [PERF]   Total execution time: 507ms
 [00:00.508] [PERF]   Memory usage: 24.5 MB
 [00:00.509] [PERF]   Peak memory: 28.2 MB
 
-✅ Debug complete
+ Debug complete
 ```
 
 ## Log Categories

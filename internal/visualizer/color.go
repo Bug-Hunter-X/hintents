@@ -98,9 +98,10 @@ func ansiWrap(text, color string) string {
 }
 
 // Success returns a success indicator: colored checkmark if enabled, "[OK]" otherwise.
+// Success returns a success indicator: colored checkmark if enabled, "[OK]" otherwise.
 func Success() string {
 	if ColorEnabled() {
-		return sgrGreen + "✓" + sgrReset
+		return sgrGreen + "[OK]" + sgrReset
 	}
 	return "[OK]"
 }
@@ -108,7 +109,7 @@ func Success() string {
 // Warning returns a warning indicator: colored warning sign if enabled, "[!]" otherwise.
 func Warning() string {
 	if ColorEnabled() {
-		return sgrYellow + "⚠" + sgrReset
+		return sgrYellow + "[!]" + sgrReset
 	}
 	return "[!]"
 }
@@ -116,47 +117,49 @@ func Warning() string {
 // Error returns an error indicator: colored X if enabled, "[X]" otherwise.
 func Error() string {
 	if ColorEnabled() {
-		return sgrRed + "✗" + sgrReset
+		return sgrRed + "[X]" + sgrReset
 	}
 	return "[X]"
 }
 
 // Symbol returns a symbol that may be styled; when colors disabled, returns plain ASCII equivalent.
+//
+//nolint:gocyclo
 func Symbol(name string) string {
 	if ColorEnabled() {
 		switch name {
 		case "check":
-			return "✓"
+			return "[OK]"
 		case "cross":
-			return "✗"
+			return "[FAIL]"
 		case "warn":
-			return "⚠"
+			return "[!]"
 		case "arrow_r":
-			return "➡️"
+			return "->"
 		case "arrow_l":
-			return "⬅️"
+			return "<-"
 		case "target":
-			return "🎯"
+			return "[TARGET]"
 		case "pin":
-			return "📍"
+			return "*"
 		case "wrench":
-			return "🔧"
+			return "[TOOL]"
 		case "chart":
-			return "📊"
+			return "[STATS]"
 		case "list":
-			return "📋"
+			return "[LIST]"
 		case "play":
-			return "▶️"
+			return "[PLAY]"
 		case "book":
-			return "📖"
+			return "[DOC]"
 		case "wave":
-			return "👋"
+			return "[HELLO]"
 		case "magnify":
-			return "🔍"
+			return "[SEARCH]"
 		case "logs":
-			return "📋"
+			return "[LOGS]"
 		case "events":
-			return "📡"
+			return "[NET]"
 		default:
 			return name
 		}

@@ -50,7 +50,7 @@ if ./erst debug --wasm "/tmp/nonexistent.wasm" 2>&1; then
     echo "ERROR: Should have failed with non-existent file"
     exit 1
 else
-    echo "${GREEN}✓ Correctly handled non-existent file${NC}"
+    echo "${GREEN}[OK] Correctly handled non-existent file${NC}"
 fi
 echo ""
 

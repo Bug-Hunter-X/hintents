@@ -13,7 +13,6 @@ import (
 )
 
 type HTMLRenderer struct {
-	tmpl *template.Template
 }
 
 func NewHTMLRenderer() *HTMLRenderer {

@@ -19,8 +19,8 @@ echo "Scanning ALL .go and .rs files for missing headers..."
 # Find all .go and .rs files, ignoring hidden folders
 find . -type f \( -name "*.go" -o -name "*.rs" \) -not -path "*/.*" | while read -r FILE; do
     if ! grep -q "Licensed under the Apache License" "$FILE"; then
-        echo "🔧 Fixing: $FILE"
+        echo "Fixing: $FILE"
         echo -e "$HEADER\n\n$(cat "$FILE")" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
     fi
 done
-echo "✅ Done."
+echo "Done."

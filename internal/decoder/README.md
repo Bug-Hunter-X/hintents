@@ -6,10 +6,10 @@ The XDR Result Code Decoder translates binary Stellar XDR error codes into human
 
 ## Features
 
-- ✅ **Transaction-Level Error Codes**: Comprehensive mapping of all `TransactionResultCode` values
-- ✅ **Operation-Level Error Codes**: Detailed mappings for operation-specific errors
-- ✅ **Human-Readable Messages**: Clear descriptions and explanations for each error
-- ✅ **Actionable Guidance**: Explanations include suggestions on how to fix the issue
+-  **Transaction-Level Error Codes**: Comprehensive mapping of all `TransactionResultCode` values
+-  **Operation-Level Error Codes**: Detailed mappings for operation-specific errors
+-  **Human-Readable Messages**: Clear descriptions and explanations for each error
+-  **Actionable Guidance**: Explanations include suggestions on how to fix the issue
 
 ## Usage
 

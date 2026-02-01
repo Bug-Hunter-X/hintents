@@ -1,6 +1,6 @@
 # CI/CD Test Summary
 
-## ✅ Changes Made for CI/CD Compatibility
+##  Changes Made for CI/CD Compatibility
 
 ### 1. **Go Version Alignment**
 - Updated `go.mod` to use Go 1.21 (matches CI environment)
@@ -34,7 +34,7 @@ The updated CI pipeline will now:
 7. **Run tests** (`go test -v -race`)
 8. **Build** (`go build -v`)
 
-## 🎯 Expected Results
+## [TARGET] Expected Results
 
 - **Unused code detection**: Will catch any unused functions, variables, constants
 - **Code quality**: Additional linters ensure consistent code style
@@ -50,13 +50,13 @@ make lint-unused    # Run unused code detection
 make lint          # Run full linter suite
 ```
 
-## 📊 Current Status
+## [STATS] Current Status
 
-- ✅ CI workflow YAML is valid
-- ✅ golangci-lint config YAML is valid  
-- ✅ Go versions match between go.mod and CI
-- ✅ All required files present
-- ✅ Scripts are executable
-- ✅ Makefile targets configured
+-  CI workflow YAML is valid
+-  golangci-lint config YAML is valid  
+-  Go versions match between go.mod and CI
+-  All required files present
+-  Scripts are executable
+-  Makefile targets configured
 
 The CI/CD pipeline is now ready to run unused code detection successfully.

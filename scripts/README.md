@@ -36,10 +36,10 @@ Automated verification script for GitHub issues.
 ```
 
 **What it checks**:
-- ✅ Issue count (expects 40 issues)
-- ✅ All issues have `new_for_wave` label
-- ✅ Issue format compliance (spot-checks first 5 issues)
-- ✅ Required sections present:
+-  Issue count (expects 40 issues)
+-  All issues have `new_for_wave` label
+-  Issue format compliance (spot-checks first 5 issues)
+-  Required sections present:
   - Requirements and Context
   - Success Criteria
   - Suggested Execution
@@ -50,31 +50,31 @@ Automated verification script for GitHub issues.
 GitHub Issues Verification Script
 =========================================
 
-✓ GitHub CLI found
-✓ Authenticated with GitHub
+[OK] GitHub CLI found
+[OK] Authenticated with GitHub
 
 Checking issues with label 'new_for_wave'...
 Found: 40 issues
 Expected: 40 issues
 
-✓ Issue count matches expected
+[OK] Issue count matches expected
 
 Fetching issue details...
 
 Verifying labels...
-✓ All issues have the 'new_for_wave' label
+[OK] All issues have the 'new_for_wave' label
 
 Spot-checking issue format (first 5 issues)...
-✓ All spot-checked issues have correct format
+[OK] All spot-checked issues have correct format
 
 =========================================
 Verification Summary
 =========================================
-✓ Issue count: 40/40
-✓ Labels applied correctly
-✓ Format checks passed
+[OK] Issue count: 40/40
+[OK] Labels applied correctly
+[OK] Format checks passed
 
-✅ All verifications passed!
+ All verifications passed!
 ```
 
 **Troubleshooting**:
@@ -151,8 +151,8 @@ gh issue list --repo dotandev/hintents --label new_for_wave --limit 100 \
    ```
 
 4. **Check results**:
-   - Green checkmarks (✓) = passed
-   - Red X (❌) = failed
+   - Green checkmarks ([OK]) = passed
+   - Red X ([FAIL]) = failed
    - Script exits with code 0 on success, 1 on failure
 
 ## CI/CD Integration

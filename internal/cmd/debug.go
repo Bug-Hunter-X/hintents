@@ -505,17 +505,17 @@ Local WASM Replay Mode:
 			}
 
 			if verifiedCount > 0 {
-				fmt.Printf("\n⚠️  VERIFIED SECURITY RISKS: %d\n", verifiedCount)
+				fmt.Printf("\n[!]  VERIFIED SECURITY RISKS: %d\n", verifiedCount)
 			}
 			if heuristicCount > 0 {
-				fmt.Printf("⚡ HEURISTIC WARNINGS: %d\n", heuristicCount)
+				fmt.Printf("* HEURISTIC WARNINGS: %d\n", heuristicCount)
 			}
 
 			fmt.Printf("\nFindings:\n")
 			for i, finding := range findings {
-				icon := "⚡"
+				icon := "*"
 				if finding.Type == security.FindingVerifiedRisk {
-					icon = "⚠️"
+					icon = "[!]"
 				}
 				fmt.Printf("%d. %s [%s] %s - %s\n", i+1, icon, finding.Type, finding.Severity, finding.Title)
 				fmt.Printf("   %s\n", finding.Description)
@@ -763,9 +763,9 @@ func printSimulationResult(network string, res *simulator.SimulationResponse) {
 		// CPU usage with percentage and warning indicator
 		cpuIndicator := ""
 		if res.BudgetUsage.CPUUsagePercent >= 95.0 {
-			cpuIndicator = " ⚠️  CRITICAL"
+			cpuIndicator = " [!]  CRITICAL"
 		} else if res.BudgetUsage.CPUUsagePercent >= 80.0 {
-			cpuIndicator = " ⚠️  WARNING"
+			cpuIndicator = " [!]  WARNING"
 		}
 		fmt.Printf("  CPU Instructions: %d / %d (%.2f%%)%s\n",
 			res.BudgetUsage.CPUInstructions,
@@ -776,9 +776,9 @@ func printSimulationResult(network string, res *simulator.SimulationResponse) {
 		// Memory usage with percentage and warning indicator
 		memIndicator := ""
 		if res.BudgetUsage.MemoryUsagePercent >= 95.0 {
-			memIndicator = " ⚠️  CRITICAL"
+			memIndicator = " [!]  CRITICAL"
 		} else if res.BudgetUsage.MemoryUsagePercent >= 80.0 {
-			memIndicator = " ⚠️  WARNING"
+			memIndicator = " [!]  WARNING"
 		}
 		fmt.Printf("  Memory Bytes: %d / %d (%.2f%%)%s\n",
 			res.BudgetUsage.MemoryBytes,
@@ -887,11 +887,6 @@ func diffResults(res1, res2 *simulator.SimulationResponse, net1, net2 string) {
 			fmt.Printf("    %s: %s\n", net2, ev2)
 		}
 	}
-}
-
-// getErstVersion returns a version string for the current build
-func getErstVersion() string {
-	return "dev"
 }
 
 func init() {

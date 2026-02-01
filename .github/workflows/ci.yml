@@ -56,11 +56,11 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
         run: |
           if [ -n "$(gofmt -l .)" ]; then
-            echo "❌ Go files are not formatted. Run 'go fmt ./...' to fix."
+            echo "[FAIL] Go files are not formatted. Run 'go fmt ./...' to fix."
             gofmt -d .
             exit 1
           fi
-          echo "✅ All Go files are properly formatted"
+          echo " All Go files are properly formatted"
 
       - name: Run go vet
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
@@ -146,10 +146,10 @@ jobs:
         if: matrix.rust-version == 'stable'
         run: |
           cargo fmt --check || {
-            echo "❌ Rust files are not formatted. Run 'cargo fmt' to fix."
+            echo "[FAIL] Rust files are not formatted. Run 'cargo fmt' to fix."
             exit 1
           }
-          echo "✅ All Rust files are properly formatted"
+          echo " All Rust files are properly formatted"
 
       - name: Run Clippy
         if: matrix.rust-version == 'stable'

@@ -327,10 +327,10 @@ export class FallbackRPCClient {
                 await client.get('/health', { timeout: 5000 });
 
                 this.markSuccess(endpoint);
-                console.log(`   ✅ ${endpoint.url}`);
+                console.log(`    ${endpoint.url}`);
             } catch (error) {
                 this.markFailure(endpoint);
-                console.log(`   ❌ ${endpoint.url}`);
+                console.log(`   [FAIL] ${endpoint.url}`);
             }
         });
 

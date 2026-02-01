@@ -30,9 +30,9 @@ export function registerProtocolCommands(program: Command): void {
                 await handler.handle(uri);
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error(`❌ Protocol handler error: ${error.message}`);
+                    console.error(`[FAIL] Protocol handler error: ${error.message}`);
                 } else {
-                    console.error('❌ Protocol handler error: An unknown error occurred');
+                    console.error('[FAIL] Protocol handler error: An unknown error occurred');
                 }
                 process.exit(1);
             }
@@ -48,19 +48,19 @@ export function registerProtocolCommands(program: Command): void {
 
                 const isRegistered = await registrar.isRegistered();
                 if (isRegistered) {
-                    console.log('⚠️  Protocol handler is already registered.');
+                    console.log('[WARN]  Protocol handler is already registered.');
                     console.log('To refresh registration, run: erst protocol:unregister && erst protocol:register');
                     return;
                 }
 
                 await registrar.register();
-                console.log('✅ Successfully registered ERST protocol handler');
+                console.log(' Successfully registered ERST protocol handler');
                 console.log('You can now launch ERST directly from supported dashboards via erst:// links.');
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error(`❌ Registration failed: ${error.message}`);
+                    console.error(`[FAIL] Registration failed: ${error.message}`);
                 } else {
-                    console.error('❌ Registration failed: An unknown error occurred');
+                    console.error('[FAIL] Registration failed: An unknown error occurred');
                 }
                 process.exit(1);
             }
@@ -74,12 +74,12 @@ export function registerProtocolCommands(program: Command): void {
             try {
                 const registrar = new ProtocolRegistrar();
                 await registrar.unregister();
-                console.log('✅ Successfully unregistered ERST protocol handler');
+                console.log(' Successfully unregistered ERST protocol handler');
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error(`❌ Unregistration failed: ${error.message}`);
+                    console.error(`[FAIL] Unregistration failed: ${error.message}`);
                 } else {
-                    console.error('❌ Unregistration failed: An unknown error occurred');
+                    console.error('[FAIL] Unregistration failed: An unknown error occurred');
                 }
                 process.exit(1);
             }
@@ -95,16 +95,16 @@ export function registerProtocolCommands(program: Command): void {
                 const isRegistered = await registrar.isRegistered();
 
                 if (isRegistered) {
-                    console.log('✅ ERST protocol handler is currently REGISTERED');
+                    console.log(' ERST protocol handler is currently REGISTERED');
                 } else {
-                    console.log('❌ ERST protocol handler is NOT REGISTERED');
+                    console.log('[FAIL] ERST protocol handler is NOT REGISTERED');
                     console.log('Run "erst protocol:register" to enable dashboard integration.');
                 }
             } catch (error) {
                 if (error instanceof Error) {
-                    console.error(`❌ Status check failed: ${error.message}`);
+                    console.error(`[FAIL] Status check failed: ${error.message}`);
                 } else {
-                    console.error('❌ Status check failed: An unknown error occurred');
+                    console.error('[FAIL] Status check failed: An unknown error occurred');
                 }
                 process.exit(1);
             }

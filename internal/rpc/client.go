@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/dotandev/hintents/internal/logger"
 
@@ -325,13 +324,6 @@ func (c *Client) GetLedgerHeader(ctx context.Context, sequence uint32) (*LedgerH
 	)
 	defer span.End()
 
-	// Set a timeout if context doesn't have one
-	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
-	}
-
 	logger.Logger.Debug("Fetching ledger header", "sequence", sequence, "network", c.Network)
 
 	// Fetch ledger from Horizon
@@ -603,9 +595,9 @@ func (c *Client) GetAccountTransactions(ctx context.Context, account string, lim
 
 func getTransactionStatus(tx hProtocol.Transaction) string {
 	if tx.Successful {
-		return "✓ success"
+		return "success"
 	}
-	return "✗ failed"
+	return "failed"
 }
 
 type SimulateTransactionRequest struct {

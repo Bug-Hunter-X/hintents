@@ -19,7 +19,7 @@ type Spinner struct {
 
 func NewSpinner() *Spinner {
 	return &Spinner{
-		frames: []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
+		frames: []string{"|", "/", "-", "\\"},
 		done:   make(chan struct{}),
 	}
 }
@@ -71,10 +71,10 @@ func (s *Spinner) Stop() {
 
 func (s *Spinner) StopWithMessage(message string) {
 	s.Stop()
-	fmt.Printf("\r✓ %s\n", message)
+	fmt.Printf("\r[OK] %s\n", message)
 }
 
 func (s *Spinner) StopWithError(message string) {
 	s.Stop()
-	fmt.Printf("\r✗ %s\n", message)
+	fmt.Printf("\r[ERROR] %s\n", message)
 }

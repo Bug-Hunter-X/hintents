@@ -37,7 +37,7 @@ export function registerAuditCommands(program: Command): void {
         process.stdout.write(JSON.stringify(log, null, 2) + '\n');
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        console.error(`❌ audit signing failed: ${msg}`);
+        console.error(`[FAIL] audit signing failed: ${msg}`);
         process.exit(1);
       }
     });

@@ -6,11 +6,11 @@ Erst now supports debugging transactions on private Stellar networks, local deve
 
 ## Features
 
-- ✅ Connect to private/local Stellar networks
-- ✅ Secure storage of network configurations with encrypted passphrases
-- ✅ Support for custom Horizon and Soroban RPC endpoints
-- ✅ Manage multiple custom network profiles
-- ✅ File permissions set to 0600 for security
+-  Connect to private/local Stellar networks
+-  Secure storage of network configurations with encrypted passphrases
+-  Support for custom Horizon and Soroban RPC endpoints
+-  Manage multiple custom network profiles
+-  File permissions set to 0600 for security
 
 ## Usage
 

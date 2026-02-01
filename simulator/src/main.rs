@@ -7,18 +7,18 @@ mod runner;
 mod source_mapper;
 mod types;
 
+use crate::gas_optimizer::{BudgetMetrics, GasOptimizationAdvisor, CPU_LIMIT, MEMORY_LIMIT};
+use crate::source_mapper::SourceMapper;
+use crate::types::*;
+use base64::Engine;
+use soroban_env_host::xdr::ReadXdr;
+use soroban_env_host::{
+    xdr::{HostFunction, Operation, OperationBody, ScVal},
+    Host, HostError,
+};
 use std::env;
 use std::io::Read;
 use tracing_subscriber::{fmt, EnvFilter};
-use soroban_env_host::{
-    xdr::{Operation, OperationBody, HostFunction, ScVal},
-    Host, HostError,
-};
-use soroban_env_host::xdr::ReadXdr;
-use base64::Engine;
-use crate::types::*;
-use crate::gas_optimizer::{GasOptimizationAdvisor, BudgetMetrics, CPU_LIMIT, MEMORY_LIMIT};
-use crate::source_mapper::SourceMapper;
 
 fn init_logger() {
     // Check if the environment variable ERST_LOG_FORMAT is set to "json"
@@ -66,19 +66,22 @@ fn execute_operations(host: &Host, operations: &[Operation]) -> Result<Vec<Strin
             OperationBody::InvokeHostFunction(invoke_op) => {
                 // In a real simulation we would invoke the host function.
                 // host.invoke_function(invoke_op.host_function.clone())?;
-                // However, without a full transaction frame setup matching the network, 
+                // However, without a full transaction frame setup matching the network,
                 // direct invocation might fail or panic if auth is missing.
                 // For now, we attempt to invoke but catch errors if possible, or just log.
-                
+
                 // Note: The host provided is already initialized with storage.
                 // We really should use `host.invoke_function`.
-                
+
                 logs.push(format!("Executing InvokeHostFunction..."));
                 let val = host.invoke_function(invoke_op.host_function.clone())?;
                 logs.push(format!("Result: {:?}", val));
             }
             _ => {
-                logs.push(format!("Skipping non-Soroban operation: {:?}", op.body.name()));
+                logs.push(format!(
+                    "Skipping non-Soroban operation: {:?}",
+                    op.body.name()
+                ));
             }
         }
     }
@@ -86,36 +89,47 @@ fn execute_operations(host: &Host, operations: &[Operation]) -> Result<Vec<Strin
 }
 
 fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<CategorizedEvent> {
-    events.0.iter().map(|e| {
-        let category = match e.event.type_ {
-            soroban_env_host::xdr::ContractEventType::Contract => "Contract",
-            soroban_env_host::xdr::ContractEventType::System => "System",
-            soroban_env_host::xdr::ContractEventType::Diagnostic => "Diagnostic",
-        }.to_string();
-
-        let contract_id = e.event.contract_id.as_ref().map(|id| format!("{:?}", id));
-        let topics = match &e.event.body {
-            soroban_env_host::xdr::ContractEventBody::V0(v0) => v0.topics.iter().map(|t| format!("{:?}", t)).collect(),
-        };
-        let data = match &e.event.body {
-            soroban_env_host::xdr::ContractEventBody::V0(v0) => format!("{:?}", v0.data),
-        };
-
-        CategorizedEvent {
-            category,
-            event: DiagnosticEvent {
-                event_type: match e.event.type_ {
-                    soroban_env_host::xdr::ContractEventType::Contract => "contract".to_string(),
-                    soroban_env_host::xdr::ContractEventType::System => "system".to_string(),
-                    soroban_env_host::xdr::ContractEventType::Diagnostic => "diagnostic".to_string(),
-                },
-                contract_id,
-                topics,
-                data,
-                in_successful_contract_call: e.failed_call,
+    events
+        .0
+        .iter()
+        .map(|e| {
+            let category = match e.event.type_ {
+                soroban_env_host::xdr::ContractEventType::Contract => "Contract",
+                soroban_env_host::xdr::ContractEventType::System => "System",
+                soroban_env_host::xdr::ContractEventType::Diagnostic => "Diagnostic",
             }
-        }
-    }).collect()
+            .to_string();
+
+            let contract_id = e.event.contract_id.as_ref().map(|id| format!("{:?}", id));
+            let topics = match &e.event.body {
+                soroban_env_host::xdr::ContractEventBody::V0(v0) => {
+                    v0.topics.iter().map(|t| format!("{:?}", t)).collect()
+                }
+            };
+            let data = match &e.event.body {
+                soroban_env_host::xdr::ContractEventBody::V0(v0) => format!("{:?}", v0.data),
+            };
+
+            CategorizedEvent {
+                category,
+                event: DiagnosticEvent {
+                    event_type: match e.event.type_ {
+                        soroban_env_host::xdr::ContractEventType::Contract => {
+                            "contract".to_string()
+                        }
+                        soroban_env_host::xdr::ContractEventType::System => "system".to_string(),
+                        soroban_env_host::xdr::ContractEventType::Diagnostic => {
+                            "diagnostic".to_string()
+                        }
+                    },
+                    contract_id,
+                    topics,
+                    data,
+                    in_successful_contract_call: e.failed_call,
+                },
+            }
+        })
+        .collect()
 }
 
 fn main() {

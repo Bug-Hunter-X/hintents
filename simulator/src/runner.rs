@@ -5,8 +5,7 @@ use soroban_env_host::{
     budget::Budget,
     storage::Storage,
     xdr::{Hash, ScErrorCode, ScErrorType},
-    Host, HostError, Val, TryIntoVal, DiagnosticLevel,
-    Error as EnvError,
+    DiagnosticLevel, Error as EnvError, Host, HostError, TryIntoVal, Val,
 };
 
 #[allow(dead_code)]
@@ -29,12 +28,12 @@ impl SimHost {
 
         // Host::with_storage_and_budget is available in recent versions
         let host = Host::with_storage_and_budget(Storage::default(), budget);
-        
+
         // Enable debug mode for better diagnostics
         host.set_diagnostic_level(DiagnosticLevel::Debug)
             .expect("failed to set diagnostic level");
-        
-        Self { 
+
+        Self {
             inner: host,
             contract_id: None,
             fn_name: None,
@@ -56,17 +55,13 @@ impl SimHost {
     pub fn val_from_u32(&self, v: u32) -> Val {
         Val::from_u32(v).into()
     }
-    
+
     /// Helper to convert a Val back to u32
     pub fn val_to_u32(&self, v: Val) -> Result<u32, HostError> {
-         v.try_into_val(&self.inner)
-            .map_err(|_| {
-                 let e = EnvError::from_type_and_code(
-                     ScErrorType::Context,
-                     ScErrorCode::InvalidInput
-                 );
-                 e.into()
-            })
+        v.try_into_val(&self.inner).map_err(|_| {
+            let e = EnvError::from_type_and_code(ScErrorType::Context, ScErrorCode::InvalidInput);
+            e.into()
+        })
     }
 }
 
@@ -90,25 +85,26 @@ mod tests {
         assert!(host.contract_id.is_some());
 
         // Test setting function name
-        host.set_fn_name("add").expect("failed to set function name");
+        host.set_fn_name("add")
+            .expect("failed to set function name");
         assert!(host.fn_name.is_some());
     }
-    
+
     #[test]
     fn test_simple_value_handling() {
         let host = SimHost::new(None);
-        
+
         let a = 10u32;
         let b = 20u32;
-        
+
         // Convert to Val (simulating inputs)
         let val_a = host.val_from_u32(a);
         let val_b = host.val_from_u32(b);
-        
+
         // Perform additions by converting back (simulating host operation handling)
         let res_a = host.val_to_u32(val_a).expect("conversion failed");
         let res_b = host.val_to_u32(val_b).expect("conversion failed");
-        
+
         assert_eq!(res_a + res_b, 30);
     }
 }

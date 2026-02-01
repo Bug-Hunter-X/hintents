@@ -46,7 +46,7 @@ export class RPCConfigParser {
             const url = new URL(urlString);
             return url.protocol === 'http:' || url.protocol === 'https:';
         } catch {
-            console.warn(`⚠️  Invalid RPC URL skipped: ${urlString}`);
+            console.warn(`[WARN]  Invalid RPC URL skipped: ${urlString}`);
             return false;
         }
     }

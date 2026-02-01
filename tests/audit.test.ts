@@ -77,11 +77,11 @@ const runTest = () => {
 
   // 4. Verify Log
   const isValid = verifyAuditLog(secureLog, publicKey);
-  
+
   if (isValid) {
-    console.log('✅ SUCCESS: Signature and Hash verified.');
+    console.log(' SUCCESS: Signature and Hash verified.');
   } else {
-    console.error('❌ FAILED: Invalid log.');
+    console.error('[FAIL] FAILED: Invalid log.');
     process.exit(1);
   }
 
@@ -89,11 +89,11 @@ const runTest = () => {
   console.log('\n--- Tampering Data ---');
   secureLog.trace.input.amount = 999999; // Hacker changes amount
   const isTamperValid = verifyAuditLog(secureLog, publicKey);
-  
+
   if (!isTamperValid) {
-    console.log('✅ SUCCESS: Tampered data detected.');
+    console.log(' SUCCESS: Tampered data detected.');
   } else {
-    console.error('❌ FAILED: Tampered data was accepted.');
+    console.error('[FAIL] FAILED: Tampered data was accepted.');
   }
 };
 

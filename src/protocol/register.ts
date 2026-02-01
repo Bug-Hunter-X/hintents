@@ -44,7 +44,7 @@ export class ProtocolRegistrar {
                     throw new Error(`Unsupported platform: ${platform}`);
             }
 
-            console.log(`✅ Protocol handler registered for ${this.protocol}://`);
+            console.log(` Protocol handler registered for ${this.protocol}://`);
         } catch (error) {
             console.error('Failed to register protocol handler:', error);
             throw error;
@@ -167,7 +167,7 @@ Terminal=false`;
                     break;
             }
 
-            console.log('✅ Protocol handler unregistered');
+            console.log(' Protocol handler unregistered');
         } catch (error) {
             console.error('Failed to unregister protocol handler:', error);
         }

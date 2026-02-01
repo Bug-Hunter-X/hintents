@@ -79,7 +79,7 @@ var cacheStatusCmd = &cobra.Command{
 		fmt.Printf("Maximum size: %s\n", formatBytes(cache.DefaultConfig().MaxSizeBytes))
 
 		if size > cache.DefaultConfig().MaxSizeBytes {
-			fmt.Printf("\n⚠️  Cache size exceeds maximum limit. Run 'erst cache clean' to free space.\n")
+			fmt.Printf("\n[!]  Cache size exceeds maximum limit. Run 'erst cache clean' to free space.\n")
 		}
 
 		return nil
@@ -125,7 +125,7 @@ var cacheClearCmd = &cobra.Command{
 	Short: "Delete all cached files",
 	Long: `Remove all cached files from the cache directory.
 
-⚠️  Warning: This action cannot be undone. Use --force to skip confirmation.`,
+[!]  Warning: This action cannot be undone. Use --force to skip confirmation.`,
 	Example: `  # Clear cache with confirmation
   erst cache clear
 

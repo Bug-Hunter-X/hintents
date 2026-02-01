@@ -107,16 +107,16 @@ The security detector is automatically invoked during `erst debug` command:
 Output includes:
 ```
 === Security Analysis ===
-⚠️  VERIFIED SECURITY RISKS: 2
-⚡ HEURISTIC WARNINGS: 1
+[WARN]  VERIFIED SECURITY RISKS: 2
+* HEURISTIC WARNINGS: 1
 
 Findings:
 
-1. ⚠️ [VERIFIED_RISK] HIGH - Integer Overflow/Underflow Detected
+1. [WARN] [VERIFIED_RISK] HIGH - Integer Overflow/Underflow Detected
    Arithmetic operation failed, indicating potential overflow or underflow
    Evidence: checked_add failed: overflow detected
 
-2. ⚡ [HEURISTIC_WARNING] HIGH - Potential Authorization Bypass
+2. * [HEURISTIC_WARNING] HIGH - Potential Authorization Bypass
    Privileged operation detected without corresponding authorization check
    Evidence: Review contract authorization logic
 ```

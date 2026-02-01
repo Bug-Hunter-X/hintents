@@ -12,12 +12,12 @@ echo
 
 echo "1. Running security module tests..."
 go test ./internal/security/... -v | grep -E "^(PASS|FAIL|ok)"
-echo "✅ Security tests passed"
+echo " Security tests passed"
 echo
 
 echo "2. Running full test suite..."
 go test ./... -short 2>&1 | grep -E "^(ok|FAIL)" | grep -v "no test files" | tail -10
-echo "✅ All tests passed"
+echo " All tests passed"
 echo
 
 echo "3. Checking test coverage..."
@@ -26,16 +26,16 @@ echo
 
 echo "4. Verifying build..."
 go build -o erst ./cmd/erst
-echo "✅ Build successful"
+echo " Build successful"
 echo
 
 echo "5. Listing implemented features..."
-echo "   ✅ Integer Overflow/Underflow Detection (VERIFIED_RISK)"
-echo "   ✅ Authorization Failure Detection (VERIFIED_RISK)"
-echo "   ✅ Contract Panic/Trap Detection (VERIFIED_RISK)"
-echo "   ✅ Large Value Transfer Detection (HEURISTIC_WARNING)"
-echo "   ✅ Reentrancy Pattern Detection (HEURISTIC_WARNING)"
-echo "   ✅ Authorization Bypass Detection (HEURISTIC_WARNING)"
+echo "    Integer Overflow/Underflow Detection (VERIFIED_RISK)"
+echo "    Authorization Failure Detection (VERIFIED_RISK)"
+echo "    Contract Panic/Trap Detection (VERIFIED_RISK)"
+echo "    Large Value Transfer Detection (HEURISTIC_WARNING)"
+echo "    Reentrancy Pattern Detection (HEURISTIC_WARNING)"
+echo "    Authorization Bypass Detection (HEURISTIC_WARNING)"
 echo
 
 echo "6. Documentation files created..."

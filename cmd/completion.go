@@ -43,7 +43,7 @@ Installation instructions:
 For detailed instructions on setting up completions for your shell, consult your shell's documentation.`,
 	DisableFlagsInUseLine: true,
 	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-	Args:                  cobra.ExactValidArgs(1),
+	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		shell := args[0]
 

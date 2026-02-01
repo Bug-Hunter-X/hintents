@@ -64,13 +64,13 @@ func FormatSlackMessage(report ReportData) SlackMessage {
 		"type": "header",
 		"text": map[string]interface{}{
 			"type": "plain_text",
-			"text": "🔍 ERST Debugging Report",
+			"text": "ERST Debugging Report",
 		},
 	}
 
-	statusEmoji := "❌"
+	statusIcon := "[FAILED]"
 	if report.Status == "success" {
-		statusEmoji = "✅"
+		statusIcon = "[SUCCESS]"
 	}
 
 	summaryBlock := map[string]interface{}{
@@ -79,7 +79,7 @@ func FormatSlackMessage(report ReportData) SlackMessage {
 			"type": "mrkdwn",
 			"text": fmt.Sprintf(
 				"%s *Status:* %s\n*Network:* %s\n*Timestamp:* %s",
-				statusEmoji,
+				statusIcon,
 				report.Status,
 				report.Network,
 				report.Timestamp.Format("2006-01-02 15:04:05 MST"),
@@ -177,9 +177,9 @@ func FormatDiscordMessage(report ReportData) DiscordMessage {
 	color := colorForStatus(report.Status)
 	colorInt := hexToDecimal(color)
 
-	statusTitle := "❌ Simulation Failed"
+	statusTitle := "[FAILED] Simulation Failed"
 	if report.Status == "success" {
-		statusTitle = "✅ Simulation Succeeded"
+		statusTitle = "[SUCCESS] Simulation Succeeded"
 	}
 
 	fields := []DiscordEmbedField{
@@ -277,7 +277,7 @@ func colorForStatus(status string) string {
 
 func hexToDecimal(hex string) int {
 	var value int
-	fmt.Sscanf(hex, "%x", &value)
+	_, _ = fmt.Sscanf(hex, "%x", &value)
 	return value
 }
 

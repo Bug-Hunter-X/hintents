@@ -25,7 +25,7 @@ Once Discussions are enabled:
    - **Name**: `Feature Requests`
    - **Description**: `Propose and vote on new features for Erst`
    - **Format**: Choose **Discussion** (allows threaded conversations)
-   - **Emoji**: 💡 (or any icon you prefer)
+   - **Emoji**: (lightbulb icon)
 
 ## Step 3: Configure Category Settings (Optional)
 
@@ -43,7 +43,7 @@ Create a pinned discussion in the Feature Requests category:
 
 **Content**:
 ```markdown
-# Welcome to Feature Requests! 🗳️
+# Welcome to Feature Requests!
 
 This is where the community shapes the future of Erst. Here's how it works:
 
@@ -56,7 +56,7 @@ This is where the community shapes the future of Erst. Here's how it works:
 
 ## Voting
 
-- Use 👍 reactions on the original post to vote
+- Use thumbs up reactions on the original post to vote
 - Features with the most votes get prioritized
 - Avoid "+1" comments - use reactions instead!
 

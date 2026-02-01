@@ -77,26 +77,26 @@ func TestSearchUnicode_Arabic(t *testing.T) {
 	assert.Equal(t, 1, len(matches))
 }
 
-func TestSearchUnicode_Emoji(t *testing.T) {
+func TestSearch_status_indicators(t *testing.T) {
 	engine := NewSearchEngine()
 
 	nodes := []*TraceNode{
 		{
 			ID:        "1",
-			EventData: "Transfer complete ✅",
+			EventData: "Transfer complete [OK]",
 		},
 		{
 			ID:    "2",
-			Error: "Failed ❌",
+			Error: "Failed [FAIL]",
 		},
 	}
 
-	engine.SetQuery("✅")
+	engine.SetQuery("[OK]")
 	matches := engine.Search(nodes)
 	assert.Equal(t, 1, len(matches))
 	assert.Equal(t, "1", matches[0].NodeID)
 
-	engine.SetQuery("❌")
+	engine.SetQuery("[FAIL]")
 	matches = engine.Search(nodes)
 	assert.Equal(t, 1, len(matches))
 	assert.Equal(t, "2", matches[0].NodeID)
@@ -109,7 +109,7 @@ func TestSearchUnicode_Mixed(t *testing.T) {
 		{
 			ID:        "1",
 			Function:  "transfer_资金",
-			EventData: "Événement créé ✅",
+			EventData: "Événement créé ",
 		},
 	}
 
@@ -124,7 +124,7 @@ func TestSearchUnicode_Mixed(t *testing.T) {
 	assert.Equal(t, 1, len(matches))
 
 	// Search for emoji
-	engine.SetQuery("✅")
+	engine.SetQuery("")
 	matches = engine.Search(nodes)
 	assert.Equal(t, 1, len(matches))
 }

@@ -121,9 +121,9 @@ jobs:
         
         # Compare
         if [ "$UBUNTU_HASH" = "$MACOS_HASH" ] && [ "$UBUNTU_HASH" = "$WINDOWS_HASH" ]; then
-          echo "✅ SUCCESS: All platform hashes are identical!"
+          echo " SUCCESS: All platform hashes are identical!"
           exit 0
         else
-          echo "❌ FAILURE: Platform hashes differ!"
+          echo "[FAIL] FAILURE: Platform hashes differ!"
           exit 1
         fi

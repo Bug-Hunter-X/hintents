@@ -40,11 +40,11 @@ if err != nil {
 ```
 
 **Benefits:**
-- ✅ Validation at build time
-- ✅ Clear, readable method names
-- ✅ Self-documenting code
-- ✅ Prevents invalid states
-- ✅ Method chaining for fluent API
+-  Validation at build time
+-  Clear, readable method names
+-  Self-documenting code
+-  Prevents invalid states
+-  Method chaining for fluent API
 
 ## Basic Usage
 

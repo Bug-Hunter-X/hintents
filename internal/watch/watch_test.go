@@ -12,6 +12,9 @@ import (
 
 func TestNewPollerDefaults(t *testing.T) {
 	poller := NewPoller(PollerConfig{})
+	if poller == nil {
+		t.Fatal("expected non-nil poller")
+	}
 
 	if poller.config.MaxAttempts != 60 {
 		t.Errorf("expected MaxAttempts 60, got %d", poller.config.MaxAttempts)
@@ -198,7 +201,7 @@ func TestNewSpinner(t *testing.T) {
 	spinner := NewSpinner()
 
 	if spinner == nil {
-		t.Error("expected non-nil spinner")
+		t.Fatal("expected non-nil spinner")
 	}
 
 	if len(spinner.frames) == 0 {

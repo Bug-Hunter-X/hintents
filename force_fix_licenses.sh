@@ -15,7 +15,7 @@ HEADER="// Copyright (c) 2026 dotandev
 // See the License for the specific language governing permissions and
 // limitations under the License."
 
-echo "🚀 Force-fixing headers in all Go and Rust files..."
+echo "Force-fixing headers in all Go and Rust files..."
 
 # Find all .go and .rs files
 find . -type f \( -name "*.go" -o -name "*.rs" \) -not -path "*/.*" | while read -r FILE; do
@@ -45,9 +45,9 @@ find . -type f \( -name "*.go" -o -name "*.rs" \) -not -path "*/.*" | while read
     if [ -n "$CLEAN_CONTENT" ]; then
         echo -e "$HEADER\n\n$CLEAN_CONTENT" > "$FILE"
     else
-        echo "⚠️ Warning: Could not detect code start for $FILE. Skipping."
+        echo "[WARN] Warning: Could not detect code start for $FILE. Skipping."
     fi
 
 done
 
-echo "✅ All files force-updated."
+echo "[OK] All files force-updated."

@@ -1,9 +1,9 @@
 // Copyright 2025 Erst Users
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::gas_optimizer::OptimizationReport;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::gas_optimizer::OptimizationReport;
 
 #[derive(Debug, Deserialize)]
 pub struct SimulationRequest {

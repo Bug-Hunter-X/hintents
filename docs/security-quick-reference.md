@@ -19,16 +19,16 @@
 
 # Example output
 === Security Analysis ===
-⚠️  VERIFIED SECURITY RISKS: 1
-⚡ HEURISTIC WARNINGS: 1
+[WARN]  VERIFIED SECURITY RISKS: 1
+* HEURISTIC WARNINGS: 1
 
 Findings:
 
-1. ⚠️ [VERIFIED_RISK] HIGH - Integer Overflow/Underflow Detected
+1. [WARN] [VERIFIED_RISK] HIGH - Integer Overflow/Underflow Detected
    Arithmetic operation failed, indicating potential overflow or underflow
    Evidence: checked_add failed: overflow detected
 
-2. ⚡ [HEURISTIC_WARNING] HIGH - Large Value Transfer Detected
+2. * [HEURISTIC_WARNING] HIGH - Large Value Transfer Detected
    Transfer of 20000000.00 XLM detected. Verify recipient address.
    Evidence: Destination: GBRP...OX2H
 ```
@@ -76,12 +76,12 @@ type Finding struct {
 
 ## Interpretation Guide
 
-### VERIFIED_RISK (⚠️)
+### VERIFIED_RISK ([WARN])
 - **Action Required**: Investigate immediately
 - **Confidence**: High - based on concrete evidence
 - **Examples**: Overflow errors, auth failures, panics
 
-### HEURISTIC_WARNING (⚡)
+### HEURISTIC_WARNING (*)
 - **Action Required**: Review and verify
 - **Confidence**: Medium - based on patterns
 - **Examples**: Large transfers, missing auth checks

@@ -65,9 +65,9 @@ grep -n "token" internal/rpc/client.go | grep -i "logger\|log\|print"
 - All tests pass and verify proper header injection
 
 ## Success Criteria Met
-- ✅ `ERST_RPC_TOKEN` environment variable supported
-- ✅ `--rpc-token` CLI flag supported
-- ✅ Custom `http.RoundTripper` injects `Authorization` header
-- ✅ Token value is NEVER logged in debug logs
-- ✅ Unit tests verify authentication behavior
-- ✅ Documentation updated
+-  `ERST_RPC_TOKEN` environment variable supported
+-  `--rpc-token` CLI flag supported
+-  Custom `http.RoundTripper` injects `Authorization` header
+-  Token value is NEVER logged in debug logs
+-  Unit tests verify authentication behavior
+-  Documentation updated

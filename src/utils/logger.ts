@@ -55,7 +55,7 @@ export class Logger {
      */
     success(message: string): void {
         if (this.level >= LogLevel.STANDARD) {
-            console.log(chalk.green('✅ ' + message));
+            console.log(chalk.green(' ' + message));
         }
     }
 
@@ -64,7 +64,7 @@ export class Logger {
      */
     warn(message: string): void {
         if (this.level >= LogLevel.STANDARD) {
-            console.log(chalk.yellow('⚠️  ' + message));
+            console.log(chalk.yellow('[WARN]  ' + message));
         }
     }
 
@@ -73,7 +73,7 @@ export class Logger {
      */
     error(message: string, error?: Error): void {
         if (this.level >= LogLevel.STANDARD) {
-            console.error(chalk.red('❌ ' + message + (error ? `: ${error.message}` : '')));
+            console.error(chalk.red('[FAIL] ' + message + (error ? `: ${error.message}` : '')));
 
             if (error && this.isVerbose()) {
                 console.error(chalk.red('   Stack trace:'));

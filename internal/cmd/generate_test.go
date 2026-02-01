@@ -61,7 +61,7 @@ Example:
 			return fmt.Errorf("failed to generate tests: %w", err)
 		}
 
-		fmt.Println("✓ Test generation completed successfully")
+		fmt.Println("[OK] Test generation completed successfully")
 		return nil
 	},
 }
