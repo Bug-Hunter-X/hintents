@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -360,21 +359,13 @@ func (c *Client) handleLedgerError(err error, sequence uint32) error {
 		switch hErr.Problem.Status {
 		case 404:
 			logger.Logger.Warn("Ledger not found", "sequence", sequence, "status", 404)
-			return &LedgerNotFoundError{
-				Sequence: sequence,
-				Message:  fmt.Sprintf("ledger %d not found (may be archived or not yet created)", sequence),
-			}
+			return errors.WrapLedgerNotFound(sequence)
 		case 410:
 			logger.Logger.Warn("Ledger archived", "sequence", sequence, "status", 410)
-			return &LedgerArchivedError{
-				Sequence: sequence,
-				Message:  fmt.Sprintf("ledger %d has been archived and is no longer available", sequence),
-			}
+			return errors.WrapLedgerArchived(sequence)
 		case 429:
 			logger.Logger.Warn("Rate limit exceeded", "sequence", sequence, "status", 429)
-			return &RateLimitError{
-				Message: "rate limit exceeded, please try again later",
-			}
+			return errors.WrapRateLimitExceeded()
 		default:
 			logger.Logger.Error("Horizon error", "sequence", sequence, "status", hErr.Problem.Status, "detail", hErr.Problem.Detail)
 			return errors.WrapRPCError(c.HorizonURL, hErr.Problem.Detail, hErr.Problem.Status)
@@ -386,54 +377,19 @@ func (c *Client) handleLedgerError(err error, sequence uint32) error {
 	return errors.WrapRPCConnectionFailed(err)
 }
 
-// LedgerNotFoundError indicates that the requested ledger doesn't exist.
-// This can happen if the ledger sequence is in the future or invalid.
-type LedgerNotFoundError struct {
-	Sequence uint32
-	Message  string
-}
-
-func (e *LedgerNotFoundError) Error() string {
-	return e.Message
-}
-
-// LedgerArchivedError indicates that the requested ledger has been archived
-// and is no longer available through the Horizon API.
-type LedgerArchivedError struct {
-	Sequence uint32
-	Message  string
-}
-
-func (e *LedgerArchivedError) Error() string {
-	return e.Message
-}
-
-// RateLimitError indicates that too many requests have been made
-// and the client should back off.
-type RateLimitError struct {
-	Message string
-}
-
-func (e *RateLimitError) Error() string {
-	return e.Message
-}
-
 // IsLedgerNotFound checks if error is a "ledger not found" error
 func IsLedgerNotFound(err error) bool {
-	_, ok := err.(*LedgerNotFoundError)
-	return ok
+	return errors.Is(err, errors.ErrLedgerNotFound)
 }
 
 // IsLedgerArchived checks if error is a "ledger archived" error
 func IsLedgerArchived(err error) bool {
-	_, ok := err.(*LedgerArchivedError)
-	return ok
+	return errors.Is(err, errors.ErrLedgerArchived)
 }
 
 // IsRateLimitError checks if error is a rate limit error
 func IsRateLimitError(err error) bool {
-	_, ok := err.(*RateLimitError)
-	return ok
+	return errors.Is(err, errors.ErrRateLimitExceeded)
 }
 
 // GetLedgerEntries fetches the current state of ledger entries from Soroban RPC

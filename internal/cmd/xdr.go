@@ -41,14 +41,14 @@ func xdrExec(cmd *cobra.Command, args []string) error {
 	case "ledger-entry":
 		le, err := decoder.DecodeXDRBase64AsLedgerEntry(string(data))
 		if err != nil {
-			return fmt.Errorf("failed to decode ledger entry: %w", err)
+			return errors.WrapUnmarshalFailed(err, "ledger entry")
 		}
 		output = le
 
 	case "diagnostic-event":
 		event, err := decoder.DecodeXDRBase64AsDiagnosticEvent(string(data))
 		if err != nil {
-			return fmt.Errorf("failed to decode diagnostic event: %w", err)
+			return errors.WrapUnmarshalFailed(err, "diagnostic event")
 		}
 		output = event
 
@@ -59,7 +59,7 @@ func xdrExec(cmd *cobra.Command, args []string) error {
 	formatter := decoder.NewXDRFormatter(decoder.FormatType(xdrFormat))
 	result, err := formatter.Format(output)
 	if err != nil {
-		return fmt.Errorf("formatting failed: %w", err)
+		return errors.WrapValidationError(fmt.Sprintf("formatting failed: %v", err))
 	}
 
 	fmt.Println(result)
