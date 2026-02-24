@@ -102,6 +102,18 @@ fn decode_error(msg: &str) -> String {
     }
 }
 
+fn extract_wasm_instruction(topics: &[String], data: &str) -> Option<String> {
+    if topics.iter().any(|t| t.contains("budget")) {
+        if let Some(pos) = data.find(':') {
+            let instr = data[pos + 1..].trim().trim_matches('"').trim_matches(')');
+            if !instr.is_empty() {
+                return Some(instr.to_string());
+            }
+        }
+    }
+    None
+}
+
 fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<CategorizedEvent> {
     events
         .0
@@ -117,13 +129,17 @@ fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<Categoriz
             let contract_id = e.event.contract_id.as_ref().map(|id| format!("{:?}", id));
             let topics = match &e.event.body {
                 soroban_env_host::xdr::ContractEventBody::V0(v0) => {
-                    v0.topics.iter().map(|t| format!("{:?}", t)).collect()
+                    v0.topics
+                        .iter()
+                        .map(|t| format!("{:?}", t))
+                        .collect::<Vec<String>>()
                 }
             };
             let data = match &e.event.body {
                 soroban_env_host::xdr::ContractEventBody::V0(v0) => format!("{:?}", v0.data),
             };
 
+            let wasm_instruction = extract_wasm_instruction(&topics, &data);
             CategorizedEvent {
                 category,
                 event: DiagnosticEvent {
@@ -140,6 +156,7 @@ fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<Categoriz
                     topics,
                     data,
                     in_successful_contract_call: e.failed_call,
+                    wasm_instruction,
                 },
             }
         })
@@ -388,12 +405,14 @@ fn main() {
                                     }
                                 };
 
+                                let wasm_instruction = extract_wasm_instruction(&topics, &data);
                                 DiagnosticEvent {
                                     event_type,
                                     contract_id,
                                     topics,
                                     data,
                                     in_successful_contract_call: event.failed_call,
+                                    wasm_instruction,
                                 }
                             })
                             .collect();
@@ -502,5 +521,21 @@ mod tests {
         assert!(decode_error("integer divide by zero").contains("VM Trap: Division by Zero"));
         assert!(decode_error("stack overflow occurred").contains("VM Trap: Stack Overflow"));
         assert_eq!(decode_error("normal error"), "normal error");
+    }
+
+    #[test]
+    fn test_extract_wasm_instruction() {
+        let topics = vec!["budget".to_string(), "tick".to_string()];
+        let data = "\"Instruction: i32.add\"".to_string();
+        let instr = extract_wasm_instruction(&topics, &data);
+        assert_eq!(instr, Some("i32.add".to_string()));
+
+        let data2 = "\"Instruction: call 12\"".to_string();
+        let instr2 = extract_wasm_instruction(&topics, &data2);
+        assert_eq!(instr2, Some("call 12".to_string()));
+
+        let topics_none = vec!["other".to_string()];
+        let instr3 = extract_wasm_instruction(&topics_none, &data);
+        assert_eq!(instr3, None);
     }
 }

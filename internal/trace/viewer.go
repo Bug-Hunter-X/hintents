@@ -180,6 +180,9 @@ func (v *InteractiveViewer) displayCurrentState() {
 	if state.ReturnValue != nil {
 		fmt.Printf("Return: %v\n", state.ReturnValue)
 	}
+	if state.WasmInstruction != "" {
+		fmt.Printf("WASM Instruction: %s\n", state.WasmInstruction)
+	}
 	if state.Error != "" {
 		fmt.Printf("%s Error: %s\n", visualizer.Error(), state.Error)
 	}

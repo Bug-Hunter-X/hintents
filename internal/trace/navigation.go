@@ -22,7 +22,8 @@ type ExecutionState struct {
 	RawReturnValue string                 `json:"raw_return_value,omitempty"`
 	Error          string                 `json:"error,omitempty"`
 	HostState      map[string]interface{} `json:"host_state,omitempty"`
-	Memory         map[string]interface{} `json:"memory,omitempty"`
+	Memory          map[string]interface{} `json:"memory,omitempty"`
+	WasmInstruction string                 `json:"wasm_instruction,omitempty"`
 }
 
 // StateSnapshot represents a complete state snapshot for efficient reconstruction

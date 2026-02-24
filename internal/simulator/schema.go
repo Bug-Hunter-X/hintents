@@ -43,6 +43,7 @@ type DiagnosticEvent struct {
 	Topics                   []string `json:"topics"`
 	Data                     string   `json:"data"`
 	InSuccessfulContractCall bool     `json:"in_successful_contract_call"`
+	WasmInstruction          *string  `json:"wasm_instruction,omitempty"`
 }
 
 // BudgetUsage represents resource consumption during simulation
