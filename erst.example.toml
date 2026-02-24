@@ -17,3 +17,14 @@ log_level = "info"
 
 # Cache directory for storing traces and snapshots
 # cache_path = "~/.erst/cache"
+
+# Opt-in anonymous crash reporting.
+# When enabled, fatal panics and unhandled errors send a minimal report
+# (error message, stack trace, OS/arch, version) to the maintainer.
+# No transaction data or personal information is ever included.
+# Can also be set via ERST_CRASH_REPORTING=true in the environment.
+# crash_reporting = false
+
+# Override the crash report collection endpoint (optional).
+# Defaults to https://crash.erst.dev/v1/report
+# crash_endpoint = "https://crash.erst.dev/v1/report"

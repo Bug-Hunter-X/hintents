@@ -29,12 +29,14 @@ var validNetworks = map[string]bool{
 
 // Config represents the general configuration for erst
 type Config struct {
-	RpcUrl        string  `json:"rpc_url,omitempty"`
-	Network       Network `json:"network,omitempty"`
-	SimulatorPath string  `json:"simulator_path,omitempty"`
-	LogLevel      string  `json:"log_level,omitempty"`
-	CachePath     string  `json:"cache_path,omitempty"`
-	RPCToken      string  `json:"rpc_token,omitempty"`
+	RpcUrl          string  `json:"rpc_url,omitempty"`
+	Network         Network `json:"network,omitempty"`
+	SimulatorPath   string  `json:"simulator_path,omitempty"`
+	LogLevel        string  `json:"log_level,omitempty"`
+	CachePath       string  `json:"cache_path,omitempty"`
+	RPCToken        string  `json:"rpc_token,omitempty"`
+	CrashReporting  bool    `json:"crash_reporting,omitempty"`
+	CrashEndpoint   string  `json:"crash_endpoint,omitempty"`
 }
 
 var defaultConfig = &Config{
@@ -82,12 +84,13 @@ func LoadConfig() (*Config, error) {
 // Load loads the configuration from environment variables and TOML files
 func Load() (*Config, error) {
 	cfg := &Config{
-		RpcUrl:        getEnv("ERST_RPC_URL", defaultConfig.RpcUrl),
-		Network:       Network(getEnv("ERST_NETWORK", string(defaultConfig.Network))),
-		SimulatorPath: getEnv("ERST_SIMULATOR_PATH", defaultConfig.SimulatorPath),
-		LogLevel:      getEnv("ERST_LOG_LEVEL", defaultConfig.LogLevel),
-		CachePath:     getEnv("ERST_CACHE_PATH", defaultConfig.CachePath),
-		RPCToken:      getEnv("ERST_RPC_TOKEN", ""),
+		RpcUrl:         getEnv("ERST_RPC_URL", defaultConfig.RpcUrl),
+		Network:        Network(getEnv("ERST_NETWORK", string(defaultConfig.Network))),
+		SimulatorPath:  getEnv("ERST_SIMULATOR_PATH", defaultConfig.SimulatorPath),
+		LogLevel:       getEnv("ERST_LOG_LEVEL", defaultConfig.LogLevel),
+		CachePath:      getEnv("ERST_CACHE_PATH", defaultConfig.CachePath),
+		RPCToken:       getEnv("ERST_RPC_TOKEN", ""),
+		CrashEndpoint:  getEnv("ERST_CRASH_ENDPOINT", ""),
 	}
 
 	if err := cfg.loadFromFile(); err != nil {
@@ -160,6 +163,10 @@ func (c *Config) parseTOML(content string) error {
 			c.CachePath = value
 		case "rpc_token":
 			c.RPCToken = value
+		case "crash_reporting":
+			c.CrashReporting = value == "true" || value == "1" || value == "yes"
+		case "crash_endpoint":
+			c.CrashEndpoint = value
 		}
 	}
 
