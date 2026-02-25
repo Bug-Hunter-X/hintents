@@ -20,6 +20,7 @@ func TestExporterCreation(t *testing.T) {
 
 	if exporter == nil {
 		t.Fatal("expected non-nil exporter")
+		return
 	}
 
 	if exporter.outputDir != tmpDir {
