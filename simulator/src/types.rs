@@ -4,6 +4,7 @@
 #![allow(dead_code)]
 
 use crate::gas_optimizer::OptimizationReport;
+use crate::stack_trace::WasmStackTrace;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -20,6 +21,8 @@ pub struct SimulationRequest {
     /// (e.g. time-locked contract logic); not yet consumed by the simulator.
     #[allow(dead_code)]
     pub timestamp: String,
+    pub mock_base_fee: Option<u32>,
+    pub mock_gas_price: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -47,6 +50,7 @@ pub struct SimulationResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source_location: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub stack_trace: Option<WasmStackTrace>,
     pub wasm_offset: Option<u64>,
 }
 
@@ -57,6 +61,8 @@ pub struct DiagnosticEvent {
     pub topics: Vec<String>,
     pub data: String,
     pub in_successful_contract_call: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wasm_instruction: Option<String>,
 }
 
 #[derive(Debug, Serialize)]

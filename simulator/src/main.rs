@@ -8,12 +8,14 @@ mod gas_optimizer;
 mod runner;
 mod source_map_cache;
 mod source_mapper;
+mod stack_trace;
 mod vm;
 mod types;
 mod wasm;
 
 use crate::gas_optimizer::{BudgetMetrics, GasOptimizationAdvisor, CPU_LIMIT, MEMORY_LIMIT};
 use crate::source_mapper::SourceMapper;
+use crate::stack_trace::{decode_error, WasmStackTrace};
 use crate::types::*;
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
@@ -52,6 +54,7 @@ fn init_logger() {
 }
 
 fn send_error(msg: String) {
+    let trace = WasmStackTrace::from_host_error(&msg);
     let res = SimulationResponse {
         status: "error".to_string(),
         error: Some(msg),
@@ -63,6 +66,7 @@ fn send_error(msg: String) {
         optimization_report: None,
         budget_usage: None,
         source_location: None,
+        stack_trace: Some(trace),
         wasm_offset: None,
     };
     println!("{}", serde_json::to_string(&res).unwrap());
@@ -89,6 +93,45 @@ fn execute_operations(host: &Host, operations: &[Operation]) -> Result<Vec<Strin
     Ok(logs)
 }
 
+fn transaction_fee_stroops(envelope: &soroban_env_host::xdr::TransactionEnvelope) -> u64 {
+    match envelope {
+        soroban_env_host::xdr::TransactionEnvelope::Tx(tx_v1) => tx_v1.tx.fee as u64,
+        soroban_env_host::xdr::TransactionEnvelope::TxV0(tx_v0) => tx_v0.tx.fee as u64,
+        soroban_env_host::xdr::TransactionEnvelope::TxFeeBump(bump) => bump.tx.fee as u64,
+    }
+}
+
+fn mocked_required_fee_stroops(
+    request: &SimulationRequest,
+    operations_count: usize,
+    cpu_insns: u64,
+    mem_bytes: u64,
+) -> Option<u64> {
+    let mut required_fee = 0u64;
+    let mut enabled = false;
+
+    if let Some(base_fee) = request.mock_base_fee {
+        enabled = true;
+        required_fee =
+            required_fee.saturating_add((base_fee as u64).saturating_mul(operations_count as u64));
+    }
+
+    if let Some(gas_price) = request.mock_gas_price {
+        enabled = true;
+        // Keep the unit small enough to be predictable in local replay while still driven by observed usage.
+        let cpu_units = cpu_insns.saturating_add(9_999) / 10_000;
+        let mem_units = mem_bytes.saturating_add(1_023) / 1_024;
+        let resource_units = cpu_units.saturating_add(mem_units).max(1);
+        required_fee = required_fee.saturating_add(gas_price.saturating_mul(resource_units));
+    }
+
+    if enabled {
+        Some(required_fee)
+    } else {
+        None
+    }
+}
+
 fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<CategorizedEvent> {
     events
         .0
@@ -104,6 +147,10 @@ fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<Categoriz
             let contract_id = e.event.contract_id.as_ref().map(|id| format!("{id:?}"));
             let topics = match &e.event.body {
                 soroban_env_host::xdr::ContractEventBody::V0(v0) => {
+                    v0.topics
+                        .iter()
+                        .map(|t| format!("{:?}", t))
+                        .collect::<Vec<String>>()
                     v0.topics.iter().map(|t| format!("{t:?}")).collect()
                 }
             };
@@ -111,6 +158,7 @@ fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<Categoriz
                 soroban_env_host::xdr::ContractEventBody::V0(v0) => format!("{:?}", v0.data),
             };
 
+            let wasm_instruction = extract_wasm_instruction(&topics, &data);
             CategorizedEvent {
                 category,
                 event: DiagnosticEvent {
@@ -126,6 +174,8 @@ fn categorize_events(events: &soroban_env_host::events::Events) -> Vec<Categoriz
                     contract_id,
                     topics,
                     data,
+                    in_successful_contract_call: e.failed_call,
+                    wasm_instruction,
                     // failed_call=true means the call that emitted this event
                     // actually failed; so a successful call is the inverse.
                     in_successful_contract_call: !e.failed_call,
@@ -154,6 +204,11 @@ fn main() {
 
     // Read JSON from Stdin
     let mut buffer = String::new();
+    if let Err(e) = std::io::stdin().read_to_string(&mut buffer) {
+        let err_msg = format!("Failed to read stdin: {}", e);
+        let res = SimulationResponse {
+            status: "error".to_string(),
+            error: Some(err_msg.clone()),
     if let Err(e) = io::stdin().read_to_string(&mut buffer) {
         let res = SimulationResponse {
             status: "error".to_string(),
@@ -166,8 +221,10 @@ fn main() {
             optimization_report: None,
             budget_usage: None,
             source_location: None,
+            stack_trace: None,
         };
         println!("{}", serde_json::to_string(&res).unwrap());
+        eprintln!("{}", err_msg);
         eprintln!("Failed to read stdin: {e}");
         return;
     }
@@ -187,6 +244,7 @@ fn main() {
                 optimization_report: None,
                 budget_usage: None,
                 source_location: None,
+                stack_trace: None,
                 wasm_offset: None,
             };
             println!("{}", serde_json::to_string(&res).expect("Failed to serialize error response"));
@@ -440,11 +498,14 @@ fn main() {
                                     }
                                 };
 
+                                let wasm_instruction = extract_wasm_instruction(&topics, &data);
                                 DiagnosticEvent {
                                     event_type,
                                     contract_id,
                                     topics,
                                     data,
+                                    in_successful_contract_call: event.failed_call,
+                                    wasm_instruction,
                                     // failed_call=true means the call failed;
                                     // negate to get "was this a successful call?".
                                     in_successful_contract_call: !event.failed_call,
@@ -501,6 +562,40 @@ fn main() {
             ];
             final_logs.extend(exec_logs);
 
+            if let Some(required_fee) = mocked_required_fee_stroops(
+                &request,
+                operations.as_slice().len(),
+                cpu_insns,
+                mem_bytes,
+            ) {
+                let declared_fee = transaction_fee_stroops(&envelope);
+                final_logs.push(format!(
+                    "Mock fee check: declared={} required={}",
+                    declared_fee, required_fee
+                ));
+
+                if declared_fee < required_fee {
+                    let response = SimulationResponse {
+                        status: "error".to_string(),
+                        error: Some(format!(
+                            "insufficient fee (mocked): declared {} stroops, required {} stroops",
+                            declared_fee, required_fee
+                        )),
+                        events,
+                        diagnostic_events,
+                        categorized_events,
+                        logs: final_logs,
+                        flamegraph: flamegraph_svg,
+                        optimization_report,
+                        budget_usage: Some(budget_usage),
+                        source_location: None,
+                    };
+
+                    println!("{}", serde_json::to_string(&response).unwrap());
+                    return;
+                }
+            }
+
             let response = SimulationResponse {
                 status: "success".to_string(),
                 error: None,
@@ -511,6 +606,8 @@ fn main() {
                 flamegraph: flamegraph_svg,
                 optimization_report,
                 budget_usage: Some(budget_usage),
+                source_location: None,
+                stack_trace: None,
                 // If a WASM with debug symbols was provided, expose the first
                 // mappable source location so callers can correlate failures.
                 source_location: source_mapper
@@ -522,6 +619,29 @@ fn main() {
             println!("{}", serde_json::to_string(&response).unwrap());
         Ok(Err(host_error)) => {
             // Host error during execution (e.g., contract trap, validation failure)
+            let error_msg = format!("{:?}", host_error);
+            let decoded_msg = decode_error(&error_msg);
+            
+            let structured_error = StructuredError {
+                error_type: "HostError".to_string(),
+                message: decoded_msg.clone(),
+                details: Some(format!(
+                    "Contract execution failed with host error: {}",
+                    decoded_msg
+                )),
+            let error_debug = format!("{:?}", host_error);
+            let wasm_trace = WasmStackTrace::from_host_error(&error_debug);
+
+            let structured_error = StructuredError {
+                error_type: "HostError".to_string(),
+                message: error_debug.clone(),
+                details: Some(format!(
+                    "Contract execution failed with host error: {}",
+                    error_debug
+                )),
+            };
+
+            let trace_display = wasm_trace.display();
 
             // Extract both raw event strings and structured diagnostic events
             let (events, diagnostic_events): (Vec<String>, Vec<DiagnosticEvent>) =
@@ -650,6 +770,10 @@ fn main() {
             let response = SimulationResponse {
                 status: "error".to_string(),
                 error: Some(serde_json::to_string(&structured_error).unwrap()),
+                events: vec![],
+                diagnostic_events: vec![],
+                categorized_events: vec![],
+                logs: vec![format!("Stack trace:\n{}", trace_display)],
                 events,
                 diagnostic_events,
                 categorized_events,
@@ -658,6 +782,7 @@ fn main() {
                 optimization_report: None,
                 budget_usage: None,
                 source_location: None,
+                stack_trace: Some(wasm_trace),
                 wasm_offset,
             };
             println!("{}", serde_json::to_string(&response).unwrap());
@@ -671,6 +796,8 @@ fn main() {
                 "Unknown panic".to_string()
             };
 
+            let wasm_trace = WasmStackTrace::from_panic(&panic_msg);
+
             let response = SimulationResponse {
                 status: "error".to_string(),
                 error: Some(format!("Simulator panicked: {panic_msg}")),
@@ -682,6 +809,7 @@ fn main() {
                 optimization_report: None,
                 budget_usage: None,
                 source_location: None,
+                stack_trace: Some(wasm_trace),
                 wasm_offset: None,
             };
             println!("{}", serde_json::to_string(&response).unwrap());
@@ -749,6 +877,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_decode_vm_traps() {
+        assert!(decode_error("Error: Wasm Trap: out of bounds memory access").contains("VM Trap: Out of Bounds Access"));
+        assert!(decode_error("Panic: unreachable").contains("VM Trap: Unreachable Instruction"));
+        assert!(decode_error("integer divide by zero").contains("VM Trap: Division by Zero"));
+        assert!(decode_error("stack overflow occurred").contains("VM Trap: Stack Overflow"));
+        assert_eq!(decode_error("normal error"), "normal error");
+    }
+
+    #[test]
+    fn test_extract_wasm_instruction() {
+        let topics = vec!["budget".to_string(), "tick".to_string()];
+        let data = "\"Instruction: i32.add\"".to_string();
+        let instr = extract_wasm_instruction(&topics, &data);
+        assert_eq!(instr, Some("i32.add".to_string()));
+
+        let data2 = "\"Instruction: call 12\"".to_string();
+        let instr2 = extract_wasm_instruction(&topics, &data2);
+        assert_eq!(instr2, Some("call 12".to_string()));
+
+        let topics_none = vec!["other".to_string()];
+        let instr3 = extract_wasm_instruction(&topics_none, &data);
+        assert_eq!(instr3, None);
+        let msg = decode_error("Error: Wasm Trap: out of bounds memory access");
+        assert!(msg.contains("VM Trap: Out of bounds memory access"));
+    }
+
+    #[test]
+    fn test_decode_unreachable() {
+        let msg = decode_error("wasm trap: unreachable");
+        assert!(msg.contains("VM Trap: Unreachable"));
     fn test_enforce_soroban_compatibility_rejects_floats() {
         let wat = r#"
             (module

@@ -19,7 +19,7 @@ import (
 type Runner struct {
 	BinaryPath string
 	Debug      bool
-	Validator  *Validator
+	MockTime   int64 // non-zero overrides Timestamp in every SimulationRequest
 }
 
 // Compile-time check to ensure Runner implements RunnerInterface
@@ -52,6 +52,18 @@ func NewRunner(simPathOverride string, debug bool) (*Runner, error) {
 		Validator:  NewValidator(false),
 	}, nil
 }
+
+// NewRunnerWithMockTime creates a Runner that overrides the ledger timestamp on
+// every request with the provided Unix epoch value. Pass 0 to disable the override.
+func NewRunnerWithMockTime(simPathOverride string, debug bool, mockTime int64) (*Runner, error) {
+	r, err := NewRunner(simPathOverride, debug)
+	if err != nil {
+		return nil, err
+	}
+	r.MockTime = mockTime
+	return r, nil
+}
+
 
 // -------------------- Binary Discovery --------------------
 
@@ -148,6 +160,10 @@ func (r *Runner) Run(req *SimulationRequest) (*SimulationResponse, error) {
 
 	if err := r.applyProtocolConfig(req, proto); err != nil {
 		return nil, err
+	}
+
+	if r.MockTime != 0 {
+		req.Timestamp = r.MockTime
 	}
 
 	inputBytes, err := json.Marshal(req)

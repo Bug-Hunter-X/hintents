@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/dotandev/hintents/internal/dwarf"
 	"github.com/dotandev/hintents/internal/visualizer"
 )
@@ -83,7 +84,7 @@ func (v *InteractiveViewer) Start() error {
 		if v.trap.SourceLocation != nil {
 			fmt.Printf("Location: %s:%d\n", v.trap.SourceLocation.File, v.trap.SourceLocation.Line)
 		}
-		fmt.Println("  Use 't' or 'trap' command to see local variables\n")
+		fmt.Println("  Use 't' or 'trap' command to see local variables")
 	}
 
 	// Resize handling: on SIGWINCH (Unix), reflow the current state display.
@@ -177,6 +178,8 @@ func (v *InteractiveViewer) handleCommand(command string) bool {
 		v.displayTrapInfo()
 	case "i", "info":
 		v.showNavigationInfo()
+	case "sp", "split":
+		v.showSplitPane()
 	case "l", "list":
 		if len(parts) > 1 {
 			v.listSteps(parts[1])
@@ -188,6 +191,12 @@ func (v *InteractiveViewer) handleCommand(command string) bool {
 	case "q", "quit", "exit":
 		fmt.Printf("Goodbye! %s\n", visualizer.Symbol("wave"))
 		return true
+	case "y", "yank", "copy":
+		if len(parts) > 1 {
+			v.handleYank(parts[1:])
+		} else {
+			fmt.Println("Usage: yank <a/r> [index]")
+		}
 	default:
 		fmt.Printf("Unknown command: %s. Type 'help' for available commands.\n", cmdExact)
 	}
@@ -323,6 +332,9 @@ func (v *InteractiveViewer) displayCurrentState() {
 	}
 	if state.ReturnValue != nil {
 		fmt.Println(wrapField("Return", fmt.Sprintf("%v", state.ReturnValue), termW))
+	}
+	if state.WasmInstruction != "" {
+		fmt.Printf("WASM Instruction: %s\n", state.WasmInstruction)
 	}
 	if state.Error != "" {
 		indicator := visualizer.Error() + " "
@@ -510,6 +522,36 @@ func (v *InteractiveViewer) listSteps(countStr string) {
 	}
 }
 
+// showSplitPane renders the horizontal split-pane view for the current step.
+func (v *InteractiveViewer) showSplitPane() {
+	state, err := v.trace.GetCurrentState()
+	if err != nil {
+		fmt.Printf("%s %s\n", visualizer.Error(), err)
+		return
+	}
+	node := executionStateToNode(state)
+	var src *SourceContext
+	if node.SourceRef != nil {
+		src, _ = LoadSourceContext(*node.SourceRef, defaultRadius)
+	}
+	pane := DefaultSplitPane()
+	pane.Render(os.Stdout, node, src)
+}
+
+// executionStateToNode derives a TraceNode from an ExecutionState for display
+// in the split pane. The SourceRef field is populated when the state carries
+// enough information to identify a source location.
+func executionStateToNode(state *ExecutionState) *TraceNode {
+	node := NewTraceNode(fmt.Sprintf("step-%d", state.Step), state.Operation)
+	node.ContractID = state.ContractID
+	node.Function = state.Function
+	if state.Error != "" {
+		node.Error = state.Error
+		node.Type = "error"
+	}
+	return node
+}
+
 // showHelp displays available keyboard shortcuts
 func (v *InteractiveViewer) showHelp() {
 	termW := getTermWidth()
@@ -527,6 +569,10 @@ func (v *InteractiveViewer) showHelp() {
 	fmt.Println("  t, trap                 - Show trap info with local variables")
 	fmt.Println("  l, list [count]         - List steps (default: 10)")
 	fmt.Println("  i, info                 - Show navigation info")
+	fmt.Println("  sp, split               - Split-pane trace and source view")
+	fmt.Println("  e, expand               - Expand current node")
+	fmt.Println("  c, collapse             - Collapse current node")
+	fmt.Println("  E                       - Toggle expand/collapse all")
 	fmt.Println()
 	fmt.Println("Filter:")
 	fmt.Println("  f, filter               - Cycle filter by event type (trap, contract_call, host_function, auth)")
@@ -538,8 +584,63 @@ func (v *InteractiveViewer) showHelp() {
 	fmt.Println("  ESC                     - Clear search / cancel input")
 	fmt.Println()
 	fmt.Println("Other:")
+	fmt.Println("  h, help              - Show this help")
+	fmt.Println("  y, yank <a/r> [idx]  - Copy raw XDR (a: arg, r: return)")
+	fmt.Println("  q, quit, exit        - Exit viewer")
 	fmt.Println("  ?, h, help              - Show this help")
 	fmt.Println("  q, quit, exit           - Exit viewer")
+}
+
+// handleYank copies raw XDR values to the clipboard
+func (v *InteractiveViewer) handleYank(args []string) {
+	state, err := v.trace.GetCurrentState()
+	if err != nil {
+		fmt.Printf("%s %s\n", visualizer.Error(), err)
+		return
+	}
+
+	subcmd := strings.ToLower(args[0])
+	var value string
+
+	switch subcmd {
+	case "a", "arg", "argument":
+		index := 0
+		if len(args) > 1 {
+			index, err = strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Printf("%s Invalid argument index: %s\n", visualizer.Error(), args[1])
+				return
+			}
+		}
+
+		if index < 0 || index >= len(state.RawArguments) {
+			fmt.Printf("%s Argument index %d out of bounds (0-%d)\n",
+				visualizer.Error(), index, len(state.RawArguments)-1)
+			return
+		}
+		value = state.RawArguments[index]
+
+	case "r", "ret", "return":
+		if state.RawReturnValue == "" {
+			fmt.Printf("%s No raw return value available at this step\n", visualizer.Error())
+			return
+		}
+		value = state.RawReturnValue
+
+	default:
+		fmt.Printf("%s Unknown yank subcommand: %s. Use 'a' for arguments or 'r' for return value.\n",
+			visualizer.Error(), subcmd)
+		return
+	}
+
+	if err := clipboard.WriteAll(value); err != nil {
+		fmt.Printf("%s Failed to copy to clipboard: %v\n", visualizer.Error(), err)
+		// Fallback: just print it so the user can see it
+		fmt.Printf("Raw XDR: %s\n", value)
+		return
+	}
+
+	fmt.Printf("%s Copied raw XDR to clipboard\n", visualizer.Symbol("sparkles"))
 }
 
 // Helper functions
