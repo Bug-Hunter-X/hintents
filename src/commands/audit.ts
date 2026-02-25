@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import { AuditLogger } from '../audit/AuditLogger';
+import { renderAuditHTML, writeAuditReport } from '../audit/AuditRenderer';
 import { createAuditSigner } from '../audit/signing/factory';
 import { verifyAuditLog } from '../audit/AuditVerifier';
 
@@ -70,6 +71,24 @@ export function registerAuditCommands(program: Command): void {
     });
 
   program
+    .command('audit:render')
+    .description('Render a raw ExecutionTrace or SignedAuditLog JSON payload to an HTML report')
+    .requiredOption('--payload <json>', 'JSON string containing the audit payload (ExecutionTrace or SignedAuditLog)')
+    .option('--output <path>', 'Write HTML to this file instead of stdout')
+    .option('--title <title>', 'Report title (default: "Audit Report")')
+    .action((opts: any) => {
+      try {
+        const payload = JSON.parse(opts.payload);
+
+        if (opts.output) {
+          writeAuditReport(payload, opts.output, opts.title);
+          console.error(`[OK] Audit report written to ${opts.output}`);
+        } else {
+          process.stdout.write(renderAuditHTML(payload, opts.title));
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[FAIL] audit render failed: ${msg}`);
     .command('audit:verify')
     .description('Verify an audit log signature locally (offline verification)')
     .option('--payload <json>', 'JSON string of the audit trace')
