@@ -19,6 +19,7 @@ import (
 type Runner struct {
 	BinaryPath string
 	Debug      bool
+	Validator  *Validator
 }
 
 // Compile-time check to ensure Runner implements RunnerInterface
@@ -48,6 +49,7 @@ func NewRunner(simPathOverride string, debug bool) (*Runner, error) {
 	return &Runner{
 		BinaryPath: path,
 		Debug:      debug,
+		Validator:  NewValidator(false),
 	}, nil
 }
 
@@ -128,6 +130,14 @@ func abs(path string) string {
 // -------------------- Execution --------------------
 
 func (r *Runner) Run(req *SimulationRequest) (*SimulationResponse, error) {
+	// Validate request before processing
+	if r.Validator != nil {
+		if err := r.Validator.ValidateRequest(req); err != nil {
+			logger.Logger.Error("Request validation failed", "error", err)
+			return nil, err
+		}
+	}
+
 	proto := GetOrDefault(req.ProtocolVersion)
 
 	if req.ProtocolVersion != nil {
