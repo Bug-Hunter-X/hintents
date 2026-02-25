@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	newWasmPath string
+	newWasmPath         string
+	upgradeOptimizeFlag bool
 )
 
 var upgradeCmd = &cobra.Command{
@@ -41,7 +42,15 @@ Example:
 		if err != nil {
 			return errors.WrapValidationError(fmt.Sprintf("failed to read WASM file: %v", err))
 		}
+		optimizedWasmBytes, report, err := optimizeWasmBytesIfRequested(newWasmBytes, upgradeOptimizeFlag)
+		if err != nil {
+			return errors.WrapValidationError(fmt.Sprintf("failed to optimize WASM: %v", err))
+		}
+		newWasmBytes = optimizedWasmBytes
 		fmt.Printf("Loaded new WASM code: %d bytes\n", len(newWasmBytes))
+		if upgradeOptimizeFlag {
+			printOptimizationReport(report)
+		}
 
 		// 2. Setup Client
 		opts := []rpc.ClientOption{
@@ -113,6 +122,7 @@ Example:
 
 func init() {
 	upgradeCmd.Flags().StringVar(&newWasmPath, "new-wasm", "", "Path to the new WASM file")
+	upgradeCmd.Flags().BoolVar(&upgradeOptimizeFlag, "optimize", false, "Run dead-code elimination on the new WASM before simulation")
 	// Reuse network flags from debug.go if possible, but they are var blocks there.
 	// Since they are in the same package, we can reuse the variables 'networkFlag' and 'rpcURLFlag'
 	// BUT we need to register flags for THIS command too.

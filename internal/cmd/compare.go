@@ -29,6 +29,7 @@ var (
 	cmpRPCURLFlag    string
 	cmpRPCTokenFlag  string
 	cmpLocalWasmFlag string
+	cmpOptimizeFlag  bool
 	cmpArgsFlag      []string
 	cmpVerboseFlag   bool
 	cmpSimPathFlag   string
@@ -93,6 +94,8 @@ func init() {
 		"RPC authentication token (or ERST_RPC_TOKEN env var)")
 	compareCmd.Flags().StringVar(&cmpLocalWasmFlag, "wasm", "",
 		"Path to local WASM file (required)")
+	compareCmd.Flags().BoolVar(&cmpOptimizeFlag, "optimize", false,
+		"Run dead-code elimination on local WASM before simulation")
 	compareCmd.Flags().StringSliceVar(&cmpArgsFlag, "args", []string{},
 		"Mock arguments to pass to the local WASM execution")
 	compareCmd.Flags().BoolVarP(&cmpVerboseFlag, "verbose", "v", false,
@@ -112,6 +115,14 @@ func init() {
 func runCompare(cmd *cobra.Command, cmdArgs []string) error {
 	ctx := cmd.Context()
 	txHash := cmdArgs[0]
+	localWasmPath := cmpLocalWasmFlag
+
+	optimizedPath, report, cleanup, err := optimizeWasmFileIfRequested(localWasmPath, cmpOptimizeFlag)
+	if err != nil {
+		return errors.WrapValidationError(fmt.Sprintf("failed to optimize local WASM: %v", err))
+	}
+	defer cleanup()
+	localWasmPath = optimizedPath
 
 	// Logging level
 	if cmpVerboseFlag {
@@ -131,6 +142,9 @@ func runCompare(cmd *cobra.Command, cmdArgs []string) error {
 	fmt.Printf("Transaction : %s\n", txHash)
 	fmt.Printf("Network     : %s\n", cmpNetworkFlag)
 	fmt.Printf("Local WASM  : %s\n", cmpLocalWasmFlag)
+	if cmpOptimizeFlag {
+		printOptimizationReport(report)
+	}
 	fmt.Println()
 
 	// ── Build RPC client ────────────────────────────────────────────────────
@@ -197,10 +211,10 @@ func runCompare(cmd *cobra.Command, cmdArgs []string) error {
 
 	// ── Run two simulation passes in parallel ────────────────────────────────
 	fmt.Printf("%s Running two simulation passes in parallel...\n", visualizer.Symbol("play"))
-	fmt.Printf("   Pass A – local WASM  : %s\n", cmpLocalWasmFlag)
+	fmt.Printf("   Pass A – local WASM  : %s\n", localWasmPath)
 	fmt.Printf("   Pass B – on-chain WASM: (using network ledger state)\n\n")
 
-	localResult, onChainResult, runErr := runBothPasses(ctx, runner, txResp, ledgerEntries)
+	localResult, onChainResult, runErr := runBothPasses(ctx, runner, txResp, ledgerEntries, localWasmPath)
 	if runErr != nil {
 		return runErr
 	}
@@ -223,6 +237,7 @@ func runBothPasses(
 	runner *simulator.Runner,
 	txResp *rpc.TransactionResponse,
 	ledgerEntries map[string]string,
+	localWasmPath string,
 ) (localResult, onChainResult *simulator.SimulationResponse, err error) {
 	var wg sync.WaitGroup
 	var localErr, onChainErr error
@@ -232,7 +247,7 @@ func runBothPasses(
 	// Pass A – local WASM
 	go func() {
 		defer wg.Done()
-		req := buildSimRequest(txResp, ledgerEntries, &cmpLocalWasmFlag, cmpArgsFlag)
+		req := buildSimRequest(txResp, ledgerEntries, &localWasmPath, cmpArgsFlag)
 		localResult, localErr = runner.Run(req)
 	}()
 
