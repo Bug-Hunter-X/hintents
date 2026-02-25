@@ -167,6 +167,31 @@ func TestTraceNode_Depth(t *testing.T) {
 	assert.Equal(t, 2, grandchild1.Depth)
 }
 
+func TestTraceNode_ApplyHeuristics(t *testing.T) {
+	root := NewTraceNode("root", "simulation")
+
+	// Add 15 similar children
+	for i := 0; i < 15; i++ {
+		child := NewTraceNode(fmt.Sprintf("child-%d", i), "contract_call")
+		child.ContractID = "CONTRACT"
+		child.Function = "func"
+		root.AddChild(child)
+	}
+
+	root.ApplyHeuristics()
+
+	// Should have 5 original children + 1 collapsed child
+	assert.Equal(t, 6, len(root.Children))
+	assert.Equal(t, "child-0", root.Children[0].ID)
+	assert.Equal(t, "child-4", root.Children[4].ID)
+	assert.Equal(t, "collapsed", root.Children[5].Type)
+	assert.Equal(t, "Show 10 more elements", root.Children[5].EventData)
+	assert.False(t, root.Children[5].Expanded)
+
+	// Collapsed node should have 10 children
+	assert.Equal(t, 10, len(root.Children[5].Children))
+	assert.Equal(t, "child-5", root.Children[5].Children[0].ID)
+	assert.Equal(t, "child-14", root.Children[5].Children[9].ID)
 func TestTraceNode_IsCrossContractCall(t *testing.T) {
 	parent := NewTraceNode("parent", "contract_call")
 	parent.ContractID = "CABC"

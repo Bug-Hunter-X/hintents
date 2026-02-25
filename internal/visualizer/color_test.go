@@ -32,11 +32,8 @@ func TestTermDumbDisablesColors(t *testing.T) {
 	os.Unsetenv("NO_COLOR")
 	os.Setenv("TERM", "dumb")
 
-	// TERM=dumb disables - we can't easily test ColorEnabled() without TTY,
-	// but we can verify the logic doesn't panic
-	_ = termDumb()
-	if !termDumb() {
-		t.Error("termDumb() should be true when TERM=dumb")
+	if ColorEnabled() {
+		t.Error("ColorEnabled() should be false when TERM=dumb")
 	}
 }
 

@@ -85,6 +85,7 @@ Optional:
 
 - `ERST_PKCS11_SLOT` (numeric index into the slot list)
 - `ERST_PKCS11_TOKEN_LABEL`
+- `ERST_PKCS11_PIV_SLOT` (YubiKey PIV slot such as 9a, 9c, 9d, 9e, 82-95, f9)
 
 Example:
 
@@ -100,6 +101,8 @@ node dist/index.js audit:sign \
 ```
 
 The command prints the signed audit log JSON to stdout so it can be redirected to a file.
+
+For YubiKey PIV (YKCS11) usage details, see [docs/pkcs11-yubikey.md](docs/pkcs11-yubikey.md).
 
 ## Documentation
 

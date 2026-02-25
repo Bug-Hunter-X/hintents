@@ -3,7 +3,7 @@
 
 import type { AuditSigner } from './types';
 import { SoftwareEd25519Signer } from './softwareSigner';
-import { Pkcs11Signer } from './pkcs11Signer'; // Updated reference
+import { Pkcs11Signer } from './pkcs11Signer';
 import { KmsEd25519Signer } from './kmsSigner';
 
 export type SigningProvider = 'software' | 'pkcs11' | 'kms';
