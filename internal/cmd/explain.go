@@ -22,8 +22,9 @@ var (
 )
 
 var explainCmd = &cobra.Command{
-	Use:   "explain [transaction-hash]",
-	Short: "Summarize why a transaction failed in plain English",
+	Use:     "explain [transaction-hash]",
+	GroupID: "core",
+	Short:   "Summarize why a transaction failed in plain English",
 	Long: `Apply heuristic analysis to a transaction and output a single-paragraph
 explanation of the root cause of the failure.
 

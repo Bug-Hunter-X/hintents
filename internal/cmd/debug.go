@@ -149,8 +149,9 @@ func (d *DebugCommand) runDebug(cmd *cobra.Command, args []string) error {
 }
 
 var debugCmd = &cobra.Command{
-	Use:   "debug <transaction-hash>",
-	Short: "Debug a failed Soroban transaction",
+	Use:     "debug <transaction-hash>",
+	GroupID: "core",
+	Short:   "Debug a failed Soroban transaction",
 	Long: `Fetch and simulate a Soroban transaction to debug failures and analyze execution.
 
 This command retrieves the transaction envelope from the Stellar network, runs it

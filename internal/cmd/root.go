@@ -24,12 +24,12 @@ var rootCmd = &cobra.Command{
 debug failed Soroban transactions and analyze smart contract execution.
 
 Key features:
-  - Debug failed transactions with detailed error traces
-  - Simulate transaction execution locally
-  - Track token flows and contract events
-  - Manage debugging sessions for complex workflows
-  - Cache transaction data for offline analysis
-  - Local WASM replay for rapid contract development
+  • Debug failed transactions with detailed error traces
+  • Simulate transaction execution locally
+  • Track token flows and contract events
+  • Manage debugging sessions for complex workflows
+  • Cache transaction data for offline analysis
+  • Local WASM replay for rapid contract development
 
 Examples:
   erst debug abc123...def                    Debug a transaction
@@ -92,6 +92,28 @@ func init() {
 		false,
 		"Enable CPU/Memory profiling and generate a flamegraph SVG",
 	)
+
+	// Define command groups for better organization
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "core",
+		Title: "Core Debugging Commands:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "testing",
+		Title: "Testing & Validation Commands:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "management",
+		Title: "Session & Cache Management:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "development",
+		Title: "Development Tools:",
+	})
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "utility",
+		Title: "Utility Commands:",
+	})
 
 	// Register commands
 	rootCmd.AddCommand(statsCmd)
